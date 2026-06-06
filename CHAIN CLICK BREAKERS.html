@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChainBreaker: Eco-Overdrive Tycoon</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
+
+        :root {
+            --bg-color: #eef2f3;
+            --primary-green: #2e7d32;
+            --accent-orange: #ff9800;
+            --dark-blue: #2c3e50;
+            --alert-red: #d32f2f;
+            --card-bg: #ffffff;
+            --border-radius: 16px;
+            --stroke: 4px solid #2c3e50;
+            --juicy-speed: 0.1s;
+            --overdrive-glow: transparent;
+        }
+
+        /* EFEITO JUICY ADAPTADO (SEM SHAKE DE TELA) */
+        .overdrive-active {
+            filter: saturate(1.3);
+            background: #090d16 !important;
+            --bg-color: #090d16;
+            --overdrive-glow: 0 0 20px #38bdf8, inset 0 0 20px #38bdf8;
+            animation: backgroundPulse 4s infinite alternate;
+        }
+        
+        .overdrive-active .node-box, .overdrive-active .top-dashboard, .overdrive-active .upgrade-shop {
+            background: #1e293b !important;
+            color: #fff !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 6px 0px #0284c7, 0 0 15px rgba(56, 189, 248, 0.4) !important;
+        }
+        
+        .overdrive-active .node-connector {
+            color: #38bdf8 !important;
+            text-shadow: 0 0 10px #38bdf8;
+        }
+
+        @keyframes backgroundPulse {
+            0% { background-color: #090d16; }
+            100% { background-color: #0f172a; }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.5s ease;
+        }
+
+        h1, h2, h3, .logo {
+            font-family: 'Fredoka One', cursive;
+            color: var(--dark-blue);
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .btn-tycoon {
+            background: var(--accent-orange);
+            color: white;
+            border: var(--stroke);
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #b26a00;
+            transition: all var(--juicy-speed) ease;
+        }
+
+        .btn-tycoon:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0px #b26a00;
+        }
+
+        .btn-tycoon:disabled {
+            background: #95a5a6;
+            box-shadow: 0 5px 0px #7f8c8d;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* ==========================================================================
+           LAYOUT CIRCULAR & MECÂNICAS VISUAIS
+           ========================================================================== */
+        #menu-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; background: radial-gradient(circle, #c8e6c9 0%, #a5d6a7 100%);
+            position: absolute; width: 100%; z-index: 200;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+            box-shadow: var(--overdrive-glow);
+            transition: box-shadow 0.5s ease;
+        }
+
+        .top-dashboard {
+            background: #fff; border: var(--stroke); border-radius: var(--border-radius);
+            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.05);
+        }
+
+        /* TIMELINE HORIZONTAL FLUIDA DO PROCESSO TÊXTIL */
+        .chain-flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border: 2px dashed var(--dark-blue);
+            margin: 10px 0;
+        }
+
+        .node-box {
+            background: #fff; border: var(--stroke); border-radius: var(--border-radius);
+            padding: 15px; display: flex; flex-direction: column; align-items: center;
+            justify-content: space-between; box-shadow: 0 6px 0px rgba(0,0,0,0.08);
+            position: relative; flex: 1; min-height: 220px;
+            transition: all 0.3s ease;
+        }
+
+        .node-connector {
+            font-size: 2.5rem;
+            color: var(--dark-blue);
+            font-weight: bold;
+            padding: 0 15px;
+            animation: pulseArrow 1.5s infinite;
+        }
+
+        @keyframes pulseArrow {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .click-target {
+            width: 85px; height: 85px; border-radius: 50%; border: var(--stroke);
+            display: flex; align-items: center; justify-content: center; font-size: 2.2rem;
+            cursor: pointer; background: #f1f2f6; box-shadow: 0 5px 0px #ced6e0;
+            transition: transform 0.05s ease; margin: 10px 0;
+        }
+        .click-target:active { transform: scale(0.9) translateY(5px); box-shadow: 0 0px 0px #ced6e0; }
+
+        .flow-bar-container {
+            width: 100%; background: #e2e8f0; height: 12px; 
+            border-radius: 6px; border: 2px solid var(--dark-blue); overflow: hidden; margin-top: 8px;
+        }
+        .flow-bar-fill { height: 100%; width: 0%; background: var(--primary-green); transition: width 0.2s ease; }
+
+        .contamination-badge {
+            background: var(--alert-red); color: white; padding: 2px 8px;
+            border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin: 4px 0;
+        }
+
+        /* SEÇÃO INFERIOR DA LOJA (PEQUENA E ORGANIZADA HORIZONTALMENTE) */
+        .upgrade-shop {
+            background: #fff;
+            border: var(--stroke);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.05);
+        }
+        .upgrade-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .special-upgrades {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+            border-top: 2px dashed #ccc;
+            padding-top: 12px;
+        }
+        
+        .upgrade-item {
+            background: #f8f9fa; border: 2px solid #cfd8dc; border-radius: 12px;
+            padding: 8px 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
+        }
+        .upgrade-item .info { font-size: 0.85rem; }
+
+        /* NOTIFICAÇÃO MINIMALISTA DE SUPORTE */
+        .ticker-bar {
+            background: #ffe082; border: 3px solid #ffb300; padding: 6px 15px;
+            border-radius: 8px; font-weight: bold; font-size: 0.85rem; text-align: center;
+            display: none; animation: pulse 2s infinite;
+        }
+
+        /* OVERLAY ELEGANTE DO LOG (SÓ ABRE COM O TAB) */
+        #tab-overlay-logs {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 1000;
+            color: white;
+            padding: 40px;
+            box-sizing: border-box;
+            backdrop-filter: blur(8px);
+        }
+        .overlay-content {
+            max-width: 900px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .story-feed { flex-grow: 1; background: rgba(0, 0, 0, 0.4); border-radius: 12px; padding: 20px; font-size: 0.95rem; overflow-y: auto; border: 2px solid #334155; }
+        .story-entry { border-left: 4px solid var(--accent-orange); padding-left: 12px; margin-bottom: 12px; animation: slideIn 0.2s ease-out; }
+        .tab-hint { text-align: center; font-size: 0.85rem; opacity: 0.7; letter-spacing: 1px; color: var(--accent-orange); }
+
+        /* ANIMAÇÕES ACCENT */
+        .floating-text { position: absolute; font-family: 'Fredoka One', cursive; font-size: 1.3rem; pointer-events: none; animation: floatUp 0.5s ease-out forwards; text-shadow: 1px 1px 0px #fff; z-index: 10; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+        @keyframes slideIn { from { transform: translateX(15px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes pulse { 0% { opacity: 0.9; } 50% { opacity: 1; transform: scale(1.005); } 100% { opacity: 0.9; } }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <div class="logo-container" style="text-align: center; margin-bottom: 20px;">
+            <h1 class="logo" style="font-size: 3.5rem; color: var(--primary-green);">CHAIN<span>BREAKER</span></h1>
+            <p style="font-weight: bold; color: var(--dark-blue); letter-spacing: 2px;">LOGÍSTICA CIRCULAR E REVERSA</p>
+        </div>
+        <button class="btn-tycoon" style="font-size: 1.4rem; padding: 12px 35px;" onclick="initGame()">QUEBRAR A CADEIA LINEAR</button>
+    </div>
+
+    <div id="game-screen">
+        
+        <div class="top-dashboard">
+            <h2>Capital: <span style="color:var(--primary-green)">R$ <span id="display-money">0</span></span></h2>
+            <div class="tab-hint">⚙️ MANTENHA PRESSIONADO [ TAB ] PARA RELATÓRIO DE IMPACTO</div>
+            <div style="font-size: 1.1rem;">Prestige: <span id="display-prestige" style="color:var(--accent-orange); font-weight:bold;">0</span> 🌍</div>
+            <div style="font-size: 1.1rem;">Status: <span id="display-speed" style="font-weight:bold; color:var(--primary-green)">Estável</span></div>
+        </div>
+
+        <div id="market-ticker" class="ticker-bar">ALERTA DE MERCADO</div>
+
+        <div class="chain-flow-container">
+            
+            <div class="node-box" id="node-1">
+                <div style="font-weight: bold; text-align: center;">1. Logística Reversa<br><small id="stock-1" style="color: #555;">0 fardos</small></div>
+                <div class="contamination-badge" id="contam-display">Contaminação: 0%</div>
+                <div class="click-target" onclick="triggerClick(1, event)">🚛</div>
+                <div class="flow-bar-container"><div class="flow-bar-fill" id="flow-1"></div></div>
+            </div>
+
+            <div class="node-connector">➔</div>
+
+            <div class="node-box" id="node-2">
+                <div style="font-weight: bold; text-align: center;">2. Triagem Avançada<br><small id="stock-2" style="color: #555;">0 retalhos</small></div>
+                <button class="btn-tycoon" style="font-size:0.7rem; padding:4px 8px; background:#d32f2f; box-shadow:0 2px 0 #7f0000;" onclick="cleanContamination()">Purificar (-R$20)</button>
+                <div class="click-target" onclick="triggerClick(2, event)">✂️</div>
+                <div class="flow-bar-container"><div class="flow-bar-fill" id="flow-2"></div></div>
+            </div>
+
+            <div class="node-connector">➔</div>
+
+            <div class="node-box" id="node-3">
+                <div style="font-weight: bold; text-align: center;">3. Fiação Regenerativa<br><small id="stock-3" style="color: #555;">0 fibras</small></div>
+                <div style="font-size:0.75rem; color:#7f8c8d;">Sujeira: <span id="gargalo-display" style="font-weight:bold; color:green;">0%</span></div>
+                <div class="click-target" onclick="triggerClick(3, event)">🧵</div>
+                <div class="flow-bar-container"><div class="flow-bar-fill" id="flow-3"></div></div>
+            </div>
+
+            <div class="node-connector">➔</div>
+
+            <div class="node-box" id="node-4">
+                <div style="font-weight: bold; text-align: center;">4. Conexão com Marcas<br><small id="stock-4" style="color: #555;">0 bobinas</small></div>
+                <div style="font-size:0.75rem; color:var(--primary-green); font-weight: bold;">Venda: R$ <span id="price-display">15</span>/un</div>
+                <div class="click-target" onclick="triggerClick(4, event)">🏢</div>
+                <div class="flow-bar-container"><div class="flow-bar-fill" id="flow-4"></div></div>
+            </div>
+
+        </div>
+
+        <div class="upgrade-shop">
+            <h3 style="border-bottom: 2px solid #ddd; padding-bottom: 4px;">Automações & Filtros Industriais</h3>
+            
+            <div class="upgrade-grid">
+                <div class="upgrade-item">
+                    <div class="info"><b>Sensores Coleta</b><br><small id="cost-up1">Custo: R$ 30</small></div>
+                    <button class="btn-tycoon" id="btn-up1" onclick="buyAutomator(1)">Comprar</button>
+                </div>
+                <div class="upgrade-item">
+                    <div class="info"><b>Visão Computacional</b><br><small id="cost-up2">Custo: R$ 100</small></div>
+                    <button class="btn-tycoon" id="btn-up2" onclick="buyAutomator(2)">Comprar</button>
+                </div>
+                <div class="upgrade-item">
+                    <div class="info"><b>Fiação Elétrica</b><br><small id="cost-up3">Custo: R$ 250</small></div>
+                    <button class="btn-tycoon" id="btn-up3" onclick="buyAutomator(3)">Comprar</button>
+                </div>
+                <div class="upgrade-item">
+                    <div class="info"><b>Smart-Contracts</b><br><small id="cost-up4">Custo: R$ 500</small></div>
+                    <button class="btn-tycoon" id="btn-up4" onclick="buyAutomator(4)">Comprar</button>
+                </div>
+            </div>
+
+            <div class="special-upgrades">
+                <div class="upgrade-item" style="flex-direction: row; align-items: center;">
+                    <div class="info"><b>Filtro de Fibras Mistas</b><br><small id="cost-filter">Custo: R$ 60</small></div>
+                    <button class="btn-tycoon" id="btn-filter" onclick="buyFilter()">Comprar</button>
+                </div>
+
+                <div class="upgrade-item" style="background: #fff3e0; border-color: var(--accent-orange); flex-direction: row; align-items: center;">
+                    <div class="info">⚡ <b>PASSAPORTE DIGITAL</b><br><small id="cost-master">Custo: R$ 1500</small></div>
+                    <button class="btn-tycoon" id="btn-master" onclick="buyMasterOverdrive()">Lançar</button>
+                </div>
+            </div>
+
+            <div class="upgrade-item" id="prestige-box" style="background: #e8f5e9; border-color: var(--primary-green); display:none; margin-top: 12px; flex-direction: row; align-items: center; justify-content: space-between;">
+                <div class="info">🌍 <b>REINICIAR ECOSSISTEMA</b> - Ganhe multiplicadores permanentes por resetar a cadeia de suprimentos.</div>
+                <button class="btn-tycoon" style="background:var(--primary-green); box-shadow:0 5px 0 #1b5e20;" onclick="triggerPrestige()">Resetar!</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="tab-overlay-logs">
+        <div class="overlay-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #475569; padding-bottom: 10px;">
+                <h2 style="color: var(--accent-orange); text-shadow: none;">📋 Painel Geral & Relatório de Impacto</h2>
+                <span style="font-weight: bold; background: #334155; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem;">Solte TAB para voltar</span>
+            </div>
+            
+            <div class="story-feed" id="story-feed">
+                <div class="story-entry">Iniciando triagem têxtil circular. Rastreamento ativo.</div>
+            </div>
+            <div class="tab-hint">Modo Inspeção Ativo — Todos os logs de conformidade de sustentabilidade e mercado salvos em tempo real.</div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            money: 15,
+            stocks: { 1: 2, 2: 0, 3: 0, 4: 0 },
+            automators: { 1: 0, 2: 0, 3: 0, 4: 0 },
+            costs: { 1: 30, 2: 100, 3: 250, 4: 500 },
+            contamination: 0,
+            hasFilter: false,
+            filterCost: 60,
+            basePrice: 15,
+            marketModifier: 1,
+            prestigeTokens: 0,
+            masterOverdrive: false,
+            globalMultiplier: 1,
+            milestonesReached: []
+        };
+
+        const milestones = [
+            { id: 'm1', check: () => state.money >= 200, msg: "🔒 AUDITORIA: QR Codes integrados! Consumidores agora descobrem que suas roupas apoiam cooperativas locais." },
+            { id: 'm2', check: () => state.contamination >= 40, msg: "⚠️ ALERTA ECONÔMICO: Alta contaminação por botões de plástico e elastano misturados reduziu a velocidade de fiação. Purifique a linha!" },
+            { id: 'm3', check: () => state.masterOverdrive === true, msg: "⚡ OVERDRIVE: Passaporte Digital Global Unificado. A cadeia virou um loop infinito autossustentável!" }
+        ];
+
+        const marketEvents = [
+            { text: "📈 Nova regulação europeia bane queima de sobras têxteis! Marcas pagam o dobro por fios limpos.", mod: 2, duration: 15 },
+            { text: "📉 Escândalo de Greenwashing em marcas parceiras derruba a demanda temporariamente.", mod: 0.5, duration: 12 },
+            { text: "🌱 Campanha viral no TikTok faz busca por moda rastreável disparar!", mod: 1.5, duration: 20 }
+        ];
+
+        // ESCUTADOR DA TECLA TAB PARA INTERFACE DE LOGS E DADOS
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                document.getElementById('tab-overlay-logs').style.display = 'block';
+            }
+        });
+
+        window.addEventListener('keyup', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                document.getElementById('tab-overlay-logs').style.display = 'none';
+            }
+        });
+
+        function initGame() {
+            document.getElementById('menu-screen').style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+                document.getElementById('menu-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'flex';
+            }, 600);
+            setInterval(gameLoop, 1000);
+            setInterval(triggerRandomMarketEvent, 25000);
+            updateUI();
+        }
+
+        function triggerClick(nodeId, event) {
+            let effMultiplier = state.globalMultiplier * (1 + state.prestigeTokens);
+            if ((nodeId === 2 || nodeId === 3) && state.contamination > 20) {
+                effMultiplier = Math.max(1, Math.round(effMultiplier * 0.4));
+            }
+
+            if (nodeId === 1) {
+                state.stocks[1] += effMultiplier;
+                if(!state.hasFilter && Math.random() < 0.4) {
+                    state.contamination = Math.min(100, state.contamination + 4);
+                }
+                createFloatingText(event.target, `+${effMultiplier} Fardos`, 'var(--primary-green)');
+            } else {
+                if (state.stocks[nodeId - 1] >= effMultiplier) {
+                    state.stocks[nodeId - 1] -= effMultiplier;
+                    state.stocks[nodeId] += effMultiplier;
+                    createFloatingText(event.target, `⚙️ Processado`, '#2c3e50');
+                } else {
+                    createFloatingText(event.target, `❌ Sem Insumo`, 'var(--alert-red)');
+                }
+            }
+
+            if (nodeId === 4 && state.stocks[4] >= effMultiplier) {
+                state.stocks[4] -= effMultiplier;
+                let payout = effMultiplier * (state.basePrice * state.marketModifier);
+                state.money += payout;
+                createFloatingText(event.target, `+R$ ${payout.toFixed(0)}`, '#2e7d32');
+            }
+
+            checkMilestones();
+            updateUI();
+            triggerVisualFlow(nodeId);
+        }
+
+        function gameLoop() {
+            let effMultiplier = state.globalMultiplier * (1 + state.prestigeTokens);
+            let efficiencyReduction = state.contamination > 20 ? 0.5 : 1;
+
+            if (state.automators[1] > 0) {
+                state.stocks[1] += state.automators[1] * effMultiplier;
+                if(!state.hasFilter && Math.random() < 0.2) state.contamination = Math.min(100, state.contamination + 2);
+                triggerVisualFlow(1);
+            }
+
+            for (let i = 2; i <= 3; i++) {
+                let speed = Math.round(state.automators[i] * effMultiplier * efficiencyReduction);
+                let available = Math.min(speed, state.stocks[i - 1]);
+                if (available > 0) {
+                    state.stocks[i - 1] -= available;
+                    state.stocks[i] += available;
+                    triggerVisualFlow(i);
+                }
+            }
+
+            let salesSpeed = Math.round(state.automators[4] * effMultiplier);
+            let salesReady = Math.min(salesSpeed, state.stocks[3]);
+            if (salesReady > 0) {
+                state.stocks[3] -= salesReady;
+                state.money += salesReady * (state.basePrice * state.marketModifier);
+                triggerVisualFlow(4);
+            }
+
+            checkMilestones();
+            updateUI();
+        }
+
+        function cleanContamination() {
+            if (state.money >= 20) {
+                state.money -= 20;
+                state.contamination = Math.max(0, state.contamination - 35);
+                pushToFeed("🧼 INFRAESTRUTURA: Parada para limpeza manual de botões, fechos e elastano da linha.");
+                updateUI();
+            }
+        }
+
+        function buyFilter() {
+            if (state.money >= state.filterCost) {
+                state.money -= state.filterCost;
+                state.hasFilter = true;
+                pushToFeed("🛡️ SUSTENTABILIDADE: Filtro Magnético instalado! Reduz drasticamente a contaminação futura.");
+                updateUI();
+            }
+        }
+
+        function triggerRandomMarketEvent() {
+            let event = marketEvents[Math.floor(Math.random() * marketEvents.length)];
+            state.marketModifier = event.mod;
+            
+            let ticker = document.getElementById('market-ticker');
+            ticker.innerText = event.text;
+            ticker.style.display = 'block';
+            pushToFeed(`📢 MERCADO: ${event.text}`);
+
+            setTimeout(() => {
+                state.marketModifier = 1;
+                ticker.style.display = 'none';
+                pushToFeed("📢 MERCADO: Estabilização de preços globais retomada.");
+                updateUI();
+            }, event.duration * 1000);
+            updateUI();
+        }
+
+        function buyAutomator(id) {
+            if (state.money >= state.costs[id]) {
+                state.money -= state.costs[id];
+                state.automators[id]++;
+                state.costs[id] = Math.round(state.costs[id] * 1.4);
+                updateUI();
+            }
+        }
+
+        function buyMasterOverdrive() {
+            if (state.money >= 1500 && !state.masterOverdrive) {
+                state.money -= 1500;
+                state.masterOverdrive = true;
+                state.globalMultiplier = 8;
+                
+                // Ativação da interface Juicy Neon sem tremer a câmera
+                document.body.classList.add('overdrive-active');
+                document.getElementById('display-speed').innerText = "OVERDRIVE AUTOSUSTENTÁVEL";
+                document.getElementById('display-speed').style.color = '#38bdf8';
+                document.getElementById('prestige-box').style.display = 'flex';
+                checkMilestones();
+                updateUI();
+            }
+        }
+
+        function triggerPrestige() {
+            state.prestigeTokens++;
+            state.money = 15;
+            state.stocks = { 1: 5, 2: 0, 3: 0, 4: 0 };
+            state.automators = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            state.costs = { 1: 30, 2: 100, 3: 250, 4: 500 };
+            state.contamination = 0;
+            state.hasFilter = false;
+            state.masterOverdrive = false;
+            state.globalMultiplier = 1;
+            
+            document.body.classList.remove('overdrive-active');
+            document.getElementById('display-speed').innerText = "Estável";
+            document.getElementById('display-speed').style.color = 'var(--primary-green)';
+            document.getElementById('prestige-box').style.display = 'none';
+
+            pushToFeed(`🌍 NOVO CICLO: Você expandiu sua cooperativa globalmente! +${state.prestigeTokens * 100}% de bônus por créditos de impacto.`);
+            updateUI();
+        }
+
+        function triggerVisualFlow(nodeId) {
+            let fill = document.getElementById(`flow-${nodeId}`);
+            fill.style.width = '100%';
+            setTimeout(() => { fill.style.width = '0%'; }, 250);
+        }
+
+        function checkMilestones() {
+            milestones.forEach(m => {
+                if (!state.milestonesReached.includes(m.id) && m.check()) {
+                    state.milestonesReached.push(m.id);
+                    pushToFeed(m.msg);
+                }
+            });
+        }
+
+        function pushToFeed(text) {
+            let feed = document.getElementById('story-feed');
+            let entry = document.createElement('div');
+            entry.className = 'story-entry';
+            entry.innerText = text;
+            feed.prepend(entry);
+        }
+
+        function createFloatingText(target, text, color) {
+            let parent = target.parentElement;
+            let el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.color = color;
+            el.style.left = '35%'; el.style.top = '40%';
+            parent.appendChild(el);
+            setTimeout(() => el.remove(), 500);
+        }
+
+        function updateUI() {
+            document.getElementById('display-money').innerText = state.money.toFixed(0);
+            document.getElementById('display-prestige').innerText = state.prestigeTokens;
+            document.getElementById('price-display').innerText = (state.basePrice * state.marketModifier).toFixed(1);
+            
+            document.getElementById('stock-1').innerText = `${state.stocks[1]} fardos`;
+            document.getElementById('stock-2').innerText = `${state.stocks[2]} retalhos`;
+            document.getElementById('stock-3').innerText = `${state.stocks[3]} fibras`;
+            document.getElementById('stock-4').innerText = `${state.stocks[4]} bobinas`;
+
+            document.getElementById('contam-display').innerText = `Contaminação: ${state.contamination}%`;
+            document.getElementById('gargalo-display').innerText = state.contamination > 20 ? "LENTIDÃO 50%" : "0%";
+            document.getElementById('gargalo-display').style.color = state.contamination > 20 ? 'red' : 'green';
+
+            for(let i = 1; i <= 4; i++) {
+                document.getElementById(`cost-up${i}`).innerText = `Custo: R$ ${state.costs[i]} (Nv. ${state.automators[i]})`;
+                document.getElementById(`btn-up${i}`).disabled = state.money < state.costs[i];
+            }
+
+            let btnFilter = document.getElementById('btn-filter');
+            if (state.hasFilter) { btnFilter.innerText = "Instalado"; btnFilter.disabled = true; } 
+            else { btnFilter.disabled = state.money < state.filterCost; }
+
+            let btnMaster = document.getElementById('btn-master');
+            if (state.masterOverdrive) { btnMaster.innerText = "LANÇADO"; btnMaster.disabled = true; } 
+            else { btnMaster.disabled = state.money < 1500; }
+        }
+    </script>
+</body>
+</html>

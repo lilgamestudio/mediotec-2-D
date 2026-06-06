@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODAL CHAIN - Industrial Circular Economy Grid</title>
+<style>
+:root {
+  --bg: #09090b; 
+  --grid-line: #1f1f23;
+  --text: #e4e4e7;
+  --panel: #18181b;
+  --panel-border: #27272a;
+  
+  --factorio-orange: #f97316;
+  --circular-green: #22c55e;
+  --alert-red: #ef4444;
+  --power-yellow: #eab308;
+  --chemical-blue: #06b6d4;
+
+  --q-color: #ef4444;
+  --w-color: #3b82f6;
+  --e-color: #10b981;
+}
+
+* { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+body {
+  margin: 0; padding: 15px;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex; flex-direction: column;
+  height: 100vh; overflow: hidden;
+}
+
+header {
+  display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+  padding-bottom: 10px; border-bottom: 2px solid var(--panel-border);
+}
+header h1 { margin: 0; font-size: 1.1rem; color: var(--factorio-orange); text-transform: uppercase; }
+
+.dashboard { display: flex; gap: 10px; justify-content: flex-end; }
+.stat-box { background: var(--panel); padding: 6px 12px; border-radius: 4px; border: 2px solid var(--panel-border); min-width: 140px; }
+.stat-box span { display: block; font-size: 0.6rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 2px; }
+.stat-box .value { font-size: 1.1rem; color: #fff; }
+
+.main-layout { display: flex; flex: 1; gap: 15px; margin: 10px 0; overflow: hidden; position: relative; }
+
+.sorting-deck { flex: 1; background: var(--panel); border: 2px solid var(--panel-border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; }
+.deck-title { color: var(--circular-green); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #3f3f46; padding-bottom: 4px; }
+
+/* Dynamic Flow Matrix Display */
+.mini-nodes-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: #040405;
+  border: 1px solid var(--panel-border);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+.mini-node {
+  border-left: 3px solid #3f3f46;
+  padding-left: 8px;
+  position: relative;
+  background: rgba(24, 24, 27, 0.4);
+}
+.mini-node-title { font-size: 0.62rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 4px; }
+.mini-node-val { font-size: 0.75rem; color: #fff; }
+
+/* Micro Activity Conveyor Track */
+.micro-track {
+  height: 4px; background: #18181b; margin-top: 6px; border-radius: 2px; position: relative; overflow: hidden;
+}
+.micro-item {
+  position: absolute; height: 100%; width: 8px; background: var(--factorio-orange);
+  left: -10px; border-radius: 1px;
+}
+.active-pulse .micro-item {
+  animation: microFlow 1s linear infinite;
+}
+@keyframes microFlow {
+  0% { left: -10px; }
+  100% { left: 100%; }
+}
+
+.combo-container { display: flex; justify-content: space-between; background: #09090b; padding: 8px; margin-bottom: 10px; border: 1px solid #27272a; font-size: 0.75rem;}
+
+.rhythm-arena {
+  flex: 1; background: #040405; border: 2px solid #27272a; border-radius: 4px;
+  display: grid; grid-template-columns: repeat(3, 1fr); position: relative; overflow: hidden; margin-bottom: 10px;
+}
+.lane { position: relative; border-right: 1px solid #18181b; height: 100%; }
+.lane.hit-flash { background-color: rgba(34, 197, 94, 0.15); }
+
+.hit-zone-bar {
+  position: absolute; bottom: 0px; left: 0; right: 0; height: 110px;
+  background: rgba(34, 197, 94, 0.04); border-top: 3px dashed var(--circular-green);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2;
+}
+.lane-key-hint { font-size: 1.2rem; color: #71717a; margin-top: 35px; }
+.scrap-falling {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 28px; height: 28px; border-radius: 4px; border: 2px solid #000; z-index: 5;
+}
+
+.floating-hit-text {
+  position: absolute; color: #fff; font-size: 0.85rem; pointer-events: none; z-index: 100;
+  animation: floatUp 0.6s ease-out forwards; text-shadow: 1px 1px 0px #000;
+}
+@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-30px); } }
+
+#crisis-alert {
+  position: absolute; top: 10px; left: 5%; width: 90%; background: rgba(239, 68, 68, 0.95);
+  border: 1px solid #fff; color: white; padding: 4px; font-size: 0.7rem; border-radius: 4px;
+  z-index: 100; display: none; text-align: center; animation: blink 0.8s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Industrial Upgrades Matrix */
+.interface-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; height: 145px; }
+.card-upgrade { background: var(--panel); border: 2px solid var(--panel-border); padding: 8px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 6px; }
+.card-upgrade.chemical-card { border-color: var(--chemical-blue); background: linear-gradient(180deg, #18181b 0%, #0c2533 100%); }
+.card-upgrade.prestige-card { border-color: var(--circular-green); background: linear-gradient(180deg, #18181b 0%, #0b2914 100%); }
+.card-upgrade h3 { margin: 0; font-size: 0.65rem; color: #fff; text-transform: uppercase; }
+.card-upgrade h3.chem-title { color: var(--chemical-blue); }
+.card-upgrade h3.prestige-title { color: var(--circular-green); }
+.card-upgrade p { margin: 4px 0; font-size: 0.58rem; color: #a1a1aa; line-height: 1.2; }
+
+.buy-btn { background: #27272a; color: #fff; border: 1px solid #3f3f46; padding: 6px; cursor: pointer; font-size: 0.62rem; text-transform: uppercase; border-radius: 4px; }
+.buy-btn:hover:not(:disabled) { background: var(--circular-green); color: #000; border-color: #fff; }
+.buy-btn.chem-btn:hover:not(:disabled) { background: var(--chemical-blue); color: #000; }
+.buy-btn:disabled { background: #18181b; color: #52525b; border-color: #27272a; cursor: not-allowed; }
+
+.game-overlay { position: fixed; inset: 0; background: rgba(9,9,11,0.98); color: #fff; z-index: 5000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+#pause-overlay { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.85); z-index: 1500; display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 6px; }
+.btn-large { background: var(--factorio-orange); color: #000; border: 2px solid #fff; padding: 12px 30px; font-size: 1rem; text-transform: uppercase; cursor: pointer; border-radius: 4px; margin-top: 15px; }
+.control-btn { background: #27272a; color: #fff; border: 1px solid #3f3f46; padding: 5px 15px; cursor: pointer; border-radius: 4px; text-transform: uppercase; font-size: 0.75rem; }
+</style>
+</head>
+<body>
+
+<div id="intro-screen" class="game-overlay">
+  <h1 style="font-size: 2.5rem; color: var(--factorio-orange); margin-bottom: 5px;">⚙️ MODAL CHAIN</h1>
+  <p style="font-size: 0.9rem; color: var(--circular-green); margin-bottom: 25px;">Closed-Loop Circular Industry Simulation</p>
+  <button class="btn-large" onclick="startGame()">Iniciar Operação</button>
+</div>
+
+<div id="gameover-screen" class="game-overlay" style="display:none;">
+  <h2 style="font-size: 2.5rem; color: var(--alert-red); margin-bottom: 10px;">ARMAZÉM TRANSBORDOU</h2>
+  <button class="btn-large" onclick="location.reload()">Reiniciar</button>
+</div>
+
+<header>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <h1>⚙️ MODAL CHAIN</h1>
+    <button class="control-btn" id="btnPause" onclick="togglePause()" disabled>Pausar</button>
+    <button class="control-btn" id="btnOverdrive" onclick="toggleOverdrive()" disabled style="color: var(--power-yellow)">Overdrive OFF</button>
+  </div>
+  <div class="dashboard">
+    <div class="stat-box"><span>Grade Elétrica</span><div class="value" style="color: var(--power-yellow);"><span id="valPower">100</span>%</div></div>
+    <div class="stat-box"><span>Insumos Reciclados</span><div class="value" style="color: var(--circular-green);"><span id="valSecMateria">0</span> u</div></div>
+    <div class="stat-box"><span>Créditos Totais</span><div class="value" style="color: #fff;">$<span id="valMoney">200</span></div></div>
+  </div>
+</header>
+
+<div class="main-layout" id="mainLayoutZone">
+  <div id="pause-overlay"><h2 style="color: var(--power-yellow);">PRODUÇÃO SUSPENSA</h2></div>
+
+  <div class="sorting-deck">
+    <div class="deck-title">♻️ Linha de Triagem & Processamento de Cadeia</div>
+    
+    <div class="mini-nodes-panel">
+      <div class="mini-node" id="track-0" style="border-left-color: var(--q-color);">
+        <div class="mini-node-title">🌱 Fibra Orgânica</div>
+        <div class="mini-node-val" id="lbl-node1">+1 u/s</div>
+        <div class="micro-track"><div class="micro-item" style="background:var(--q-color)"></div></div>
+      </div>
+      <div class="mini-node" id="track-1" style="border-left-color: #3b82f6;">
+        <div class="mini-node-title">🏭 Tecelagem Circular</div>
+        <div class="mini-node-val" id="lbl-node2">Consome Insumos</div>
+        <div class="micro-track"><div class="micro-item" style="background:#3b82f6"></div></div>
+      </div>
+      <div class="mini-node" id="track-2" style="border-left-color: var(--factorio-orange);">
+        <div class="mini-node-title">📦 Lotes Enviados</div>
+        <div class="mini-node-val" id="lbl-node3">0 u</div>
+        <div class="micro-track"><div class="micro-item" style="background:var(--factorio-orange)"></div></div>
+      </div>
+      <div class="mini-node" id="track-3" style="border-left-color: var(--chemical-blue);">
+        <div class="mini-node-title">🧪 Reator Térmico</div>
+        <div class="mini-node-val" id="lbl-node4">Inativo</div>
+        <div class="micro-track"><div class="micro-item" style="background:var(--chemical-blue)"></div></div>
+      </div>
+    </div>
+
+    <div class="combo-container">
+      <div>FILA DE TRIAGEM: <span id="valWaste">0</span> / <span id="maxWaste">45</span></div>
+      <div>MULTIPLICADOR: <span id="valCombo" style="color: var(--power-yellow);">x1.00</span></div>
+    </div>
+
+    <div class="rhythm-arena" id="arena-viewport">
+      <div id="crisis-alert">⚠️ ALERTA: SUPRIMENTO CRÍTICO (FAST FASHION OVERFLOW)</div>
+      <div class="lane" id="lane-0"><div class="hit-zone-bar"><span class="lane-key-hint" style="color: var(--q-color)">Q</span></div></div>
+      <div class="lane" id="lane-1"><div class="hit-zone-bar"><span class="lane-key-hint" style="color: var(--w-color)">W</span></div></div>
+      <div class="lane" id="lane-2"><div class="hit-zone-bar"><span class="lane-key-hint" style="color: var(--e-color)">E</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="interface-grid">
+  <div class="card-upgrade">
+    <div>
+      <h3>🤖 Drones Mecânicos</h3>
+      <p>Automação básica. Consome energia para processar itens da esteira.</p>
+    </div>
+    <button class="buy-btn" id="up-drone" onclick="buyMod('drone')">Adquirir ($120)</button>
+  </div>
+
+  <div class="card-upgrade">
+    <div>
+      <h3>🏬 Expansão Logística</h3>
+      <p>Aumenta a tolerância física do pátio de triagem em +15.</p>
+    </div>
+    <button class="buy-btn" id="up-storage" onclick="buyMod('storage')">Adquirir ($80)</button>
+  </div>
+
+  <div class="card-upgrade chemical-card">
+    <div>
+      <h3 class="chem-title">🧪 Depolimerização</h3>
+      <p>Gasta material (u) para quebrar sintéticos direto em lucro ($) a cada 4s.</p>
+    </div>
+    <button class="buy-btn chem-btn" id="up-chem-depolim" onclick="buyMod('depolim')">Instalar (25 u)</button>
+  </div>
+
+  <div class="card-upgrade chemical-card">
+    <div>
+      <h3 class="chem-title">⚡ Matriz Solar Focal</h3>
+      <p>Revestimento fotovoltaico. Recupera +6% de energia passivamente.</p>
+    </div>
+    <button class="buy-btn chem-btn" id="up-chem-solar" onclick="buyMod('solar')">Montar (35 u)</button>
+  </div>
+
+  <div class="card-upgrade prestige-card">
+    <div>
+      <h3 class="prestige-title">🏅 Selo Sustentável</h3>
+      <p>Reseta a infraestrutura básica, garantindo +50% de valor em toda venda.</p>
+    </div>
+    <button class="buy-btn prestige-btn" id="up-prestige" onclick="buyMod('prestige')">Homologar ($800)</button>
+  </div>
+</div>
+
+<script>
+let state = {
+  money: 200,
+  wasteCount: 0,
+  maxWasteLimit: 45,
+  combo: 1.0,
+  secMateria: 0,
+  powerGrid: 100,
+  totalDispatched: 0,
+  
+  drones: 0,
+  hasDepolim: 0,
+  hasSolar: 0,
+  prestigeMultiplier: 1.0,
+  
+  fallSpeed: 6,
+  isOverdrive: false,
+  waveTimer: 0,
+  isCrisis: false,
+  isPaused: false,
+  isStarted: false,
+  activeBlocks: []
+};
+
+const LANE_KEYS = ['q', 'w', 'e'];
+const LANE_COLORS = ['var(--q-color)', 'var(--w-color)', 'var(--e-color)'];
+
+let loopCore, loopPhysics, loopPower, loopChemicalPassive;
+
+window.addEventListener('keydown', (e) => {
+  if (!state.isStarted || state.wasteCount >= state.maxWasteLimit || state.isPaused) return;
+  if (e.key === ' ') { e.preventDefault(); togglePause(); return; }
+  let keyIndex = LANE_KEYS.indexOf(e.key.toLowerCase());
+  if (keyIndex !== -1) checkLaneHit(keyIndex);
+});
+
+function startGame() {
+  document.getElementById("intro-screen").style.display = "none";
+  document.getElementById("btnPause").disabled = false;
+  document.getElementById("btnOverdrive").disabled = false;
+  state.isStarted = true;
+  
+  // Turn on steady visual ambient animations on our tracks
+  document.getElementById("track-0").classList.add("active-pulse");
+  document.getElementById("track-1").classList.add("active-pulse");
+  
+  loopCore = setInterval(tick, 1000);
+  loopPhysics = setInterval(updatePhysics, 45);
+  loopPower = setInterval(powerTick, 2000);
+  loopChemicalPassive = setInterval(runChemicalPassiveCode, 4000);
+}
+
+function togglePause() {
+  state.isPaused = !state.isPaused;
+  document.getElementById("pause-overlay").style.display = state.isPaused ? "flex" : "none";
+  document.getElementById("btnPause").textContent = state.isPaused ? "Continuar" : "Pausar";
+}
+
+function toggleOverdrive() {
+  state.isOverdrive = !state.isOverdrive;
+  const btn = document.getElementById("btnOverdrive");
+  btn.textContent = state.isOverdrive ? "Overdrive ON" : "Overdrive OFF";
+  btn.style.background = state.isOverdrive ? "var(--alert-red)" : "#27272a";
+}
+
+function powerTick() {
+  if (state.isPaused) return;
+  
+  let drain = 2 + (state.drones * 2);
+  if (state.isOverdrive) drain *= 3;
+  state.powerGrid = Math.max(0, state.powerGrid - drain);
+  
+  if (state.hasSolar > 0) {
+    state.powerGrid = Math.min(100, state.powerGrid + (state.hasSolar * 6));
+  }
+
+  if (state.powerGrid <= 0) {
+    state.powerGrid = 25;
+    let fine = Math.floor(state.money * 0.1);
+    state.money = Math.max(0, state.money - fine);
+    spawnJuicyText(`⚡ Falha na Grade: -$${fine}`);
+  }
+  updateUI();
+}
+
+function runChemicalPassiveCode() {
+  if (state.isPaused) return;
+
+  // Conversion Step: Raw Polymers (u) are built into products to yield Credits ($)
+  if (state.secMateria >= 6) {
+    state.secMateria -= 6;
+    let yieldCash = Math.floor(40 * state.prestigeMultiplier);
+    state.money += yieldCash;
+    state.totalDispatched += 6;
+    
+    // Light up shipment tracker monitor pulse
+    let dispatchNode = document.getElementById("track-2");
+    dispatchNode.classList.add("active-pulse");
+    setTimeout(() => dispatchNode.classList.remove("active-pulse"), 1000);
+    
+    spawnJuicyText(`📦 Lote Manufaturado: +$${yieldCash}`);
+  }
+
+  // Depolymerizer machine engine
+  if (state.hasDepolim > 0 && state.wasteCount > 0) {
+    let burn = Math.min(state.hasDepolim * 2, state.wasteCount);
+    state.wasteCount -= burn;
+    let automaticCash = Math.floor(burn * 25 * state.prestigeMultiplier);
+    state.money += automaticCash;
+    spawnJuicyText(`🧪 Depolim: +$${automaticCash}`);
+  }
+  updateUI();
+}
+
+function tick() {
+  if (state.isPaused) return;
+  state.waveTimer++;
+
+  // Passive raw farming input
+  state.secMateria += 1;
+
+  if (state.waveTimer % 30 === 0) {
+    state.isCrisis = true;
+    state.fallSpeed += 3;
+    document.getElementById("crisis-alert").style.display = "block";
+    setTimeout(() => {
+      state.isCrisis = false;
+      state.fallSpeed = Math.max(6, state.fallSpeed - 3);
+      document.getElementById("crisis-alert").style.display = "none";
+    }, 8000);
+  }
+
+  let incomingCount = state.isCrisis ? 3 : 1;
+  if (state.waveTimer % 2 === 0) {
+    for (let i = 0; i < incomingCount; i++) {
+      if (state.wasteCount < state.maxWasteLimit) {
+        state.wasteCount++;
+        spawnFallingBlock();
+      }
+    }
+  }
+
+  // Drone automation mechanics
+  if (state.powerGrid > 10 && state.drones > 0 && state.activeBlocks.length > 0) {
+    let targets = Math.min(state.drones, state.activeBlocks.length);
+    for (let i = 0; i < targets; i++) {
+      let match = state.activeBlocks[Math.floor(Math.random() * state.activeBlocks.length)];
+      if (match && match.yPos < 160) {
+        processSuccessfulHit(match);
+        break;
+      }
+    }
+  }
+
+  updateUI();
+  if (state.wasteCount >= state.maxWasteLimit) endGame();
+}
+
+function spawnFallingBlock() {
+  let targetLane = Math.floor(Math.random() * 3);
+  const laneContainer = document.getElementById(`lane-${targetLane}`);
+  if (!laneContainer) return;
+  
+  const block = document.createElement("div");
+  block.className = "scrap-falling";
+  block.style.backgroundColor = LANE_COLORS[targetLane];
+  block.style.top = "0px";
+  laneContainer.appendChild(block);
+
+  state.activeBlocks.push({ element: block, lane: targetLane, yPos: 350 });
+}
+
+function updatePhysics() {
+  if (state.isPaused) return;
+  const containerHeight = 350; 
+  for (let i = state.activeBlocks.length - 1; i >= 0; i--) {
+    let block = state.activeBlocks[i];
+    block.yPos -= state.fallSpeed;
+    block.element.style.top = (containerHeight - block.yPos) + "px";
+
+    if (block.yPos <= 10) {
+      block.element.remove();
+      state.activeBlocks.splice(i, 1);
+      state.wasteCount = Math.max(0, state.wasteCount - 1);
+      state.combo = 1.0; 
+      updateUI();
+    }
+  }
+}
+
+function checkLaneHit(laneIndex) {
+  for (let i = 0; i < state.activeBlocks.length; i++) {
+    let block = state.activeBlocks[i];
+    if (block.lane === laneIndex && block.yPos <= 130) {
+      let laneEl = document.getElementById(`lane-${laneIndex}`);
+      laneEl.classList.add("hit-flash");
+      setTimeout(() => laneEl.classList.remove("hit-flash"), 100);
+      processSuccessfulHit(block);
+      break;
+    }
+  }
+}
+
+function spawnJuicyText(text) {
+  const container = document.getElementById("arena-viewport");
+  const floater = document.createElement("div");
+  floater.className = "floating-hit-text";
+  floater.style.left = "25%";
+  floater.style.top = "45%";
+  floater.textContent = text;
+  container.appendChild(floater);
+  setTimeout(() => floater.remove(), 600);
+}
+
+function processSuccessfulHit(block) {
+  block.element.remove();
+  let idx = state.activeBlocks.indexOf(block);
+  if (idx !== -1) state.activeBlocks.splice(idx, 1);
+
+  state.combo += 0.10;
+  state.wasteCount = Math.max(0, state.wasteCount - 1);
+  
+  // Sorting produces clean base mass component units (u)
+  let baseYield = 2;
+  if (state.isOverdrive) baseYield *= 2;
+  state.secMateria += baseYield;
+  
+  spawnJuicyText(`+${baseYield}u Material`);
+  updateUI();
+}
+
+function buyMod(type) {
+  if (type === 'drone' && state.money >= 120) {
+    state.money -= 120; state.drones++;
+  } else if (type === 'storage' && state.money >= 80) {
+    state.money -= 80; state.maxWasteLimit += 15;
+  } else if (type === 'depolim' && state.secMateria >= 25) {
+    state.secMateria -= 25; state.hasDepolim++;
+    document.getElementById("track-3").classList.add("active-pulse");
+  } else if (type === 'solar' && state.secMateria >= 35) {
+    state.secMateria -= 35; state.hasSolar++;
+  } else if (type === 'prestige' && state.money >= 800) {
+    state.money = 150; state.wasteCount = 0; state.maxWasteLimit = 45;
+    state.drones = 0; state.hasDepolim = 0; state.hasSolar = 0;
+    state.prestigeMultiplier += 0.5;
+    state.activeBlocks.forEach(b => b.element.remove());
+    state.activeBlocks = [];
+    document.getElementById("track-3").classList.remove("active-pulse");
+  }
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById("valMoney").textContent = state.money;
+  document.getElementById("valWaste").textContent = state.wasteCount;
+  document.getElementById("maxWaste").textContent = state.maxWasteLimit;
+  document.getElementById("valCombo").textContent = "x" + state.combo.toFixed(2);
+  document.getElementById("valSecMateria").textContent = state.secMateria;
+  document.getElementById("valPower").textContent = state.powerGrid;
+  
+  // Mini Dashboard Node Text Syncing
+  document.getElementById("lbl-node1").textContent = `+1 u/s`;
+  document.getElementById("lbl-node2").textContent = `${state.secMateria} u em estoque`;
+  document.getElementById("lbl-node3").textContent = `${state.totalDispatched} u despachados`;
+  document.getElementById("lbl-node4").textContent = state.hasDepolim > 0 ? `${state.hasDepolim} Mod Ativo` : "Inativo";
+
+  // Enable/Disable system based on currency profiles
+  document.getElementById("up-drone").disabled = state.money < 120;
+  document.getElementById("up-storage").disabled = state.money < 80;
+  document.getElementById("up-chem-depolim").disabled = state.secMateria < 25;
+  document.getElementById("up-chem-solar").disabled = state.secMateria < 35;
+  document.getElementById("up-prestige").disabled = state.money < 800;
+}
+
+function endGame() {
+  clearInterval(loopCore); clearInterval(loopPhysics); clearInterval(loopPower); clearInterval(loopChemicalPassive);
+  document.getElementById("gameover-screen").style.display = "flex";
+}
+
+updateUI();
+</script>
+</body>
+</html>
