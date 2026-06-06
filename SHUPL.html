@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHAIN MODAL - Industrial Circular Economy Grid</title>
+<style>
+:root {
+  --bg: #09090b; 
+  --grid-line: #1f1f23;
+  --text: #e4e4e7;
+  --panel: #18181b;
+  --panel-border: #27272a;
+  
+  /* Accent Colors */
+  --factorio-orange: #f97316;
+  --belt-color: #3f3f46;
+  --circular-green: #22c55e;
+  --alert-red: #ef4444;
+  --power-yellow: #eab308;
+  --science-purple: #a855f7;
+  --chemical-blue: #06b6d4;
+
+  /* Lane/Key Colors */
+  --q-color: #ef4444;
+  --w-color: #3b82f6;
+  --e-color: #10b981;
+}
+
+* { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+body {
+  margin: 0; padding: 15px;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex; flex-direction: column;
+  height: 100vh; overflow: hidden;
+}
+
+header {
+  display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+  padding-bottom: 10px; border-bottom: 2px solid var(--panel-border);
+}
+header h1 { margin: 0; font-size: 1.1rem; color: var(--factorio-orange); text-transform: uppercase; }
+
+.dashboard { display: flex; gap: 10px; justify-content: flex-end; }
+.stat-box { background: var(--panel); padding: 6px 12px; border-radius: 4px; border: 2px solid var(--panel-border); min-width: 130px; }
+.stat-box span { display: block; font-size: 0.6rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 2px; }
+.stat-box .value { font-size: 1.1rem; color: #fff; }
+
+.main-layout { display: flex; flex: 1; gap: 15px; margin: 10px 0; overflow: hidden; position: relative; }
+
+/* Expanded Factory Floor Map */
+.simulation-space {
+  flex: 2.2; background-color: #040405; border: 2px solid var(--panel-border); border-radius: 6px; position: relative;
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.routes-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.belt-path { stroke: var(--belt-color); stroke-width: 12; stroke-linecap: round; fill: none; }
+.belt-line { stroke: var(--factorio-orange); stroke-width: 2; stroke-dasharray: 6, 12; animation: moveBelt 0.25s linear infinite; fill: none; }
+.belt-green { stroke: var(--circular-green); stroke-width: 2; stroke-dasharray: 6, 12; animation: moveBeltReverse 0.25s linear infinite; fill: none; }
+
+.paused-anim .belt-line, .paused-anim .belt-green { animation-play-state: paused; }
+@keyframes moveBelt { to { stroke-dashoffset: -18; } }
+@keyframes moveBeltReverse { to { stroke-dashoffset: 18; } }
+
+/* Factory Physical Nodes */
+.node { position: absolute; background: var(--panel); border: 2px solid var(--panel-border); padding: 6px 10px; box-shadow: 4px 4px 0px #000; z-index: 5; border-radius: 4px; }
+.node-title { font-size: 0.7rem; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #3f3f46; padding-bottom: 2px; color: #fff; }
+.node-stats { font-size: 0.63rem; color: #a1a1aa; margin: 2px 0; display: flex; justify-content: space-between; }
+
+#node-extrator { top: 15%; left: 5%; border-color: var(--q-color); width: 170px; }
+#node-fabrica { top: 45%; left: 8%; border-color: #3b82f6; width: 210px; }
+#node-loja { top: 45%; left: 58%; border-color: var(--factorio-orange); width: 190px; }
+#node-bioreator { top: 75%; left: 32%; border-color: var(--e-color); width: 200px; }
+
+/* FEED ECO-EFICIÊNCIA TÉXTIL */
+.edu-ticker {
+  position: absolute; bottom: 10px; left: 10px; width: 320px; 
+  background: rgba(24, 24, 27, 0.93); border: 1px dashed var(--science-purple);
+  padding: 8px; border-radius: 4px; z-index: 10; font-size: 0.65rem; color: #d4d4d8;
+}
+.edu-ticker-title { color: var(--science-purple); font-size: 0.7rem; margin-bottom: 4px; display: flex; justify-content: space-between; }
+
+/* JUICY FLOATING TEXTS */
+.floating-hit-text {
+  position: absolute; color: #fff; font-size: 0.95rem; pointer-events: none;
+  z-index: 100; animation: floatUp 0.65s ease-out forwards; text-shadow: 2px 2px 0px #000;
+}
+@keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.1); } 100% { opacity: 0; transform: translateY(-45px) scale(0.8); } }
+
+/* Sorting Deck Lanes (3 Lanes Only Now) */
+.sorting-deck { flex: 1.8; background: var(--panel); border: 2px solid var(--panel-border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; }
+.deck-title { color: var(--circular-green); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #3f3f46; padding-bottom: 4px; }
+.combo-container { display: flex; justify-content: space-between; background: #09090b; padding: 8px; margin-bottom: 10px; border: 1px solid #27272a; font-size: 0.75rem;}
+
+.rhythm-arena {
+  flex: 1; background: #040405; border: 2px solid #27272a; border-radius: 4px;
+  display: grid; grid-template-columns: repeat(3, 1fr); position: relative; overflow: hidden; margin-bottom: 10px;
+}
+.lane { position: relative; border-right: 1px solid #18181b; height: 100%; transition: background-color 0.1s ease; }
+.lane:last-child { border-right: none; }
+.lane.hit-flash { background-color: rgba(34, 197, 94, 0.15); }
+
+.hit-zone-bar {
+  position: absolute; bottom: 0px; left: 0; right: 0; height: 110px;
+  background: rgba(34, 197, 94, 0.04); border-top: 3px dashed var(--circular-green);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2;
+}
+.lane-key-hint { font-size: 1.2rem; color: #71717a; margin-top: 35px; }
+.scrap-falling {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 32px; height: 32px; border-radius: 6px; border: 2px solid #000; z-index: 5;
+}
+
+#crisis-alert {
+  position: absolute; top: 10px; left: 5%; width: 90%;
+  background: rgba(239, 68, 68, 0.95); border: 2px solid #fff; color: white;
+  padding: 6px; font-size: 0.75rem; border-radius: 4px; z-index: 100;
+  display: none; text-align: center; animation: blink 0.8s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Upgrade Grid */
+.interface-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; height: 145px; z-index: 2500; }
+.card-upgrade { background: var(--panel); border: 2px solid var(--panel-border); padding: 8px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 6px; }
+.card-upgrade.chemical-card { border-color: var(--chemical-blue); background: linear-gradient(180deg, #18181b 0%, #082f49 100%); }
+.card-upgrade.prestige-card { border-color: var(--circular-green); background: linear-gradient(180deg, #18181b 0%, #052e16 100%); }
+.card-upgrade h3 { margin: 0; font-size: 0.68rem; color: #fff; text-transform: uppercase; }
+.card-upgrade h3.chem-title { color: var(--chemical-blue); }
+.card-upgrade h3.prestige-title { color: var(--circular-green); }
+.card-upgrade p { margin: 4px 0; font-size: 0.58rem; color: #a1a1aa; line-height: 1.2; }
+
+.buy-btn { background: #27272a; color: #fff; border: 1px solid #3f3f46; padding: 6px; cursor: pointer; font-size: 0.65rem; text-transform: uppercase; border-radius: 4px; }
+.buy-btn:hover:not(:disabled) { background: var(--circular-green); color: #000; border-color: #fff; }
+.buy-btn.chem-btn:hover:not(:disabled) { background: var(--chemical-blue); color: #000; }
+.buy-btn:disabled { background: #18181b; color: #52525b; border-color: #27272a; cursor: not-allowed; }
+
+/* TAB Upgrades Overlay Menu */
+.stats-tab-overlay {
+  position: fixed; inset: 40px; background: rgba(15, 15, 20, 0.95); border: 3px dashed var(--factorio-orange);
+  border-radius: 8px; z-index: 4000; display: none; padding: 30px; flex-direction: column;
+}
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; }
+.stats-col { background: #18181b; padding: 15px; border-radius: 4px; border: 1px solid #27272a; }
+
+.cargo { position: absolute; width: 12px; height: 12px; border-radius: 50%; z-index: 10; transform: translate(-50%, -50%); border: 2px solid #000; }
+.game-overlay { position: fixed; inset: 0; background: rgba(9,9,11,0.98); color: #fff; z-index: 5000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+#pause-overlay { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.85); z-index: 1500; display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 6px; border: 2px solid var(--power-yellow); }
+#gameover-screen { display: none; }
+
+.btn-large { background: var(--factorio-orange); color: #000; border: 2px solid #fff; padding: 12px 30px; font-size: 1rem; text-transform: uppercase; cursor: pointer; border-radius: 4px; margin-top: 15px; }
+.control-btn { background: #27272a; color: #fff; border: 1px solid #3f3f46; padding: 5px 15px; cursor: pointer; border-radius: 4px; text-transform: uppercase; font-size: 0.75rem; }
+.control-btn:hover { background: var(--factorio-orange); color: #000; }
+.control-btn.active-mode { background: var(--alert-red); color: #fff; border-color: #fff; }
+.control-btn.paused-active { background: var(--power-yellow); color: #000; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div id="stats-tab-menu" class="stats-tab-overlay">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3f3f46; padding-bottom: 10px;">
+    <h2 style="color: var(--factorio-orange); margin: 0; font-size: 1.5rem;">📊 DIAGNÓSTICO DA MATRIZ INDUSTRIAL</h2>
+    <span style="color: #71717a; font-size: 0.8rem;">Pressione [TAB] para fechar</span>
+  </div>
+  <div class="stats-grid">
+    <div class="stats-col">
+      <h3 style="color: var(--circular-green); margin-top: 0;">LOGÍSTICA MECÂNICA</h3>
+      <p>Drones Operários Ativos: <span id="stat-drones" style="color:#fff">0</span></p>
+      <p>Capacidade Total do Galpão: <span id="stat-storage" style="color:#fff">45</span> slots</p>
+      <p>Fator de Descarte Têxtil: <span id="stat-design" style="color:#fff">1.0x</span></p>
+    </div>
+    <div class="stats-col">
+      <h3 style="color: var(--chemical-blue); margin-top: 0;">ENGENHARIA QUÍMICA</h3>
+      <p>Cadeias de Depolimerização: <span id="stat-depolim" style="color:#fff">0</span> unidades</p>
+      <p>Catalisadores de Enzimas: <span id="stat-enzyme" style="color:#fff">0</span> reatores</p>
+      <p>Geração Passiva Solar: <span id="stat-solar" style="color:#fff">0</span> painéis</p>
+    </div>
+  </div>
+</div>
+
+<div id="intro-screen" class="game-overlay">
+  <h1 style="font-size: 2.8rem; color: var(--factorio-orange); margin-bottom: 5px;">⚙️ CHAIN MODAL</h1>
+  <p style="font-size: 1rem; color: var(--circular-green); margin-bottom: 25px;">Industrial Circular Economy Matrix</p>
+  <div style="background: #18181b; padding: 20px; border: 1px solid #27272a; text-align: left; max-width: 530px; font-size: 0.8rem; line-height: 1.5; color: #a1a1aa;">
+    <b style="color: #fff;">SISTEMA INDUSTRIAL RESPONSIVO:</b><br>
+    - Pressione <span style="color: #fff;">Q, W, E</span> no tempo certo para triagem mecânica.<br>
+    - Pressione <span style="color: var(--factorio-orange);">TAB</span> a qualquer instante para ver upgrades efetuados.<br>
+    - <b style="color: var(--power-yellow);">CUIDADO COM A GRADE:</b> Se a energia bater 0%, as esteiras travam e você perde créditos de penalidade!
+  </div>
+  <button class="btn-large" onclick="startGame()">Iniciar Operação</button>
+</div>
+
+<div id="gameover-screen" class="game-overlay">
+  <h2 style="font-size: 2.5rem; color: var(--alert-red); margin-bottom: 10px;">ARMAZÉM OVERFLOWED</h2>
+  <p style="font-size: 1rem; color: #a1a1aa; margin-bottom: 20px;">Falta de escoamento e colapso regulatório dos galpões!</p>
+  <button class="btn-large" onclick="location.reload()">Resetar Sistema</button>
+</div>
+
+<header>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <h1>⚙️ FACTORIO CHAIN</h1>
+    <button class="control-btn" id="btnPause" onclick="togglePause()" disabled>Pausar (Espaço)</button>
+    <button class="control-btn" id="btnOverdrive" onclick="toggleOverdrive()" disabled style="color: var(--power-yellow)">Overdrive OFF</button>
+  </div>
+  <div class="dashboard">
+    <div class="stat-box"><span>Grade Elétrica</span><div class="value" style="color: var(--power-yellow);"><span id="valPower">100</span>%</div></div>
+    <div class="stat-box"><span>Créditos Totais</span><div class="value" style="color: #22c55e;">$<span id="valMoney">400</span></div></div>
+    <div class="stat-box"><span>Fator Prestige</span><div class="value" style="color: var(--circular-green);" id="valPrestige">x1.0</div></div>
+    <div class="stat-box"><span>Insumos Circulares</span><div class="value" style="color: var(--science-purple);"><span id="valSecMateria">0</span> u</div></div>
+  </div>
+</header>
+
+<div class="main-layout" id="mainLayoutZone">
+  <div id="pause-overlay">
+    <h2 style="font-size: 2.2rem; color: var(--power-yellow); margin: 0;">PRODUÇÃO SUSPENSA</h2>
+    <p style="font-size: 0.85rem; color: #a1a1aa; margin: 5px 0 0 0;">Análise molecular liberada. Upgrades livres na parte inferior.</p>
+  </div>
+
+  <div class="simulation-space" id="canvas">
+    <div id="crisis-alert">⚠️ ALERTA: DESCARTE EM MASSA (FAST FASHION CONTAMINATION)</div>
+
+    <svg class="routes-svg">
+      <path class="belt-path" d="M 15% 18% L 15% 40%"/>
+      <path class="belt-line" d="M 15% 18% L 15% 40%"/>
+      <path class="belt-path" d="M 30% 46% L 60% 46%"/>
+      <path class="belt-line" d="M 30% 46% L 60% 46%"/>
+      <path class="belt-path" d="M 35% 76% L 20% 76% L 20% 52%"/>
+      <path class="belt-green" d="M 35% 76% L 20% 76% L 20% 52%"/>
+    </svg>
+    
+    <div class="node" id="node-extrator">
+      <div class="node-title">🌱 Algodão Orgânico</div>
+      <div class="node-stats"><span>Fluxo Base:</span><span>+1 u/s</span></div>
+    </div>
+    
+    <div class="node" id="node-fabrica">
+      <div class="node-title">🏭 Tecelagem Circular</div>
+      <div class="node-stats"><span>Matéria Secundária:</span><span id="buf-circular" style="color:var(--circular-green)">0 u</span></div>
+      <div class="node-stats"><span>Geração Real:</span><span style="color:var(--science-purple)">+2 u/s</span></div>
+    </div>
+    
+    <div class="node" id="node-loja">
+      <div class="node-title">📦 Terminal de Despacho</div>
+      <div class="node-stats"><span>Lote Enviado:</span><span id="cnt-loja">0 u</span></div>
+      <div class="node-stats"><span>EPR Tax:</span><span id="valTax">5%</span></div>
+    </div>
+
+    <div class="node" id="node-bioreator">
+      <div class="node-title">🧪 Bioreator Hidrolítico</div>
+      <div class="node-stats"><span>Bio-Insumos:</span><span style="color:var(--circular-green)">Ativo Passivo</span></div>
+    </div>
+
+    <div class="edu-ticker">
+      <div class="edu-ticker-title"><span>📡 SENSORES DE MATÉRIA SUSTENTÁVEL</span></div>
+      <div id="edu-text">Analisando pureza molecular dos polímeros têxteis reciclados...</div>
+    </div>
+  </div>
+
+  <div class="sorting-deck">
+    <div class="deck-title">♻️ Centralizador de Triagem Facilitada (纯)</div>
+    <div class="combo-container">
+      <div>ARMAZÉM DE MATERIAIS: <span id="valWaste">0</span> / <span id="maxWaste">45</span></div>
+      <div>MULTIPLIER: <span id="valCombo" style="color: var(--power-yellow);">x1.0</span></div>
+    </div>
+
+    <div class="rhythm-arena" id="arena-viewport">
+      <div class="lane" id="lane-0"><div class="hit-zone-bar"><span class="lane-key-hint" style="color: var(--q-color)">Q</span></div></div>
+      <div class="lane" id="lane-1"><div class="hit-zone-bar"><span class="lane-key-hint" style="color: var(--w-color)">W</span></div></div>
+      <div class="lane" id="lane-2"><div class="hit-zone-bar"><span class="lane-key-hint" style="color: var(--e-color)">E</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="interface-grid">
+  <div class="card-upgrade">
+    <div>
+      <h3>🤖 Drone Auto-Click</h3>
+      <p>Robôs mecânicos para limpar a esteira rolante sozinhos.</p>
+    </div>
+    <button class="buy-btn" id="up-drone" onclick="buyMod('drone')">Adquirir ($120)</button>
+  </div>
+
+  <div class="card-upgrade">
+    <div>
+      <h3>🏬 Galpão Expandido</h3>
+      <p>Aumenta fisicamente a capacidade do armazém em +15.</p>
+    </div>
+    <button class="buy-btn" id="up-storage" onclick="buyMod('storage')">Adquirir ($110)</button>
+  </div>
+
+  <div class="card-upgrade chemical-card">
+    <div>
+      <h3 class="chem-title">🧪 Depolimerização</h3>
+      <p>Derrete sintéticos. Converte lixo em dinheiro a cada 5s.</p>
+    </div>
+    <button class="buy-btn chem-btn" id="up-chem-depolim" onclick="buyMod('depolim')">Pesquisar (20 u)</button>
+  </div>
+
+  <div class="card-upgrade chemical-card">
+    <div>
+      <h3 class="chem-title">⚡ Célula Solar Integrada</h3>
+      <p>Gera +4% de energia na grade passivamente a cada 5 segundos.</p>
+    </div>
+    <button class="buy-btn chem-btn" id="up-chem-solar" onclick="buyMod('solar')">Pesquisar (30 u)</button>
+  </div>
+
+  <div class="card-upgrade prestige-card">
+    <div>
+      <h3 class="prestige-title">🏅 Certificado Green-Tier</h3>
+      <p>Reseta mecânicas básicas. Concede multiplicador geral de +x0.5 vitalício.</p>
+    </div>
+    <button class="buy-btn prestige-btn" id="up-prestige" onclick="buyMod('prestige')">Certificar ($1000)</button>
+  </div>
+</div>
+
+<script>
+let state = {
+  money: 400,
+  wasteCount: 0,
+  maxWasteLimit: 45,
+  combo: 1.0,
+  comboGrowth: 0.15,
+  secMateria: 0,
+  powerGrid: 100,
+  
+  // Contadores de Upgrades para o Menu TAB
+  drones: 0,
+  ecoDesign: 1.0,
+  hasDepolim: 0,
+  hasSolar: 0,
+  prestigeMultiplier: 1.0,
+  
+  fallSpeed: 6,
+  isOverdrive: false,
+  waveTimer: 0,
+  isCrisis: false,
+  isPaused: false,
+  isStarted: false,
+  isTabOpen: false,
+  activeBlocks: []
+};
+
+const LANE_KEYS = ['q', 'w', 'e'];
+const LANE_COLORS = ['var(--q-color)', 'var(--w-color)', 'var(--e-color)'];
+
+const EDU_FACTS = [
+  "Fato: Misturas puras facilitam a reciclagem química sem degradação das fibras mecânicas primárias.",
+  "Logística: A regulação EPR exige monitoramento contínuo de rastreabilidade de resíduos secos.",
+  "Impacto: Processamentos bioquímicos reduzem a pegada de carbono da indústria em até 62%."
+];
+
+let loopCore, loopPhysics, loopVisualBelts, loopPower, loopChemicalPassive;
+
+window.addEventListener('keydown', (e) => {
+  if (!state.isStarted || state.wasteCount >= state.maxWasteLimit) return;
+  
+  if (e.key === ' ') { e.preventDefault(); togglePause(); return; }
+  
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    toggleStatsTab();
+    return;
+  }
+
+  if (state.isPaused) return;
+
+  let keyIndex = LANE_KEYS.indexOf(e.key.toLowerCase());
+  if (keyIndex !== -1) checkLaneHit(keyIndex);
+});
+
+function startGame() {
+  document.getElementById("intro-screen").style.display = "none";
+  document.getElementById("btnPause").disabled = false;
+  document.getElementById("btnOverdrive").disabled = false;
+  state.isStarted = true;
+  
+  loopCore = setInterval(tick, 1000);
+  loopPhysics = setInterval(updatePhysics, 45);
+  loopVisualBelts = setInterval(runPhysicalBelts, 1400);
+  loopPower = setInterval(powerTick, 2500);
+  loopChemicalPassive = setInterval(runChemicalPassiveCode, 5000);
+}
+
+function toggleStatsTab() {
+  state.isTabOpen = !state.isTabOpen;
+  document.getElementById("stats-tab-menu").style.display = state.isTabOpen ? "flex" : "none";
+  
+  // Atualiza dados internos do painel TAB
+  document.getElementById("stat-drones").textContent = state.drones;
+  document.getElementById("stat-storage").textContent = state.maxWasteLimit;
+  document.getElementById("stat-design").textContent = (1 / state.ecoDesign).toFixed(1) + "x";
+  document.getElementById("stat-depolim").textContent = state.hasDepolim;
+  document.getElementById("stat-enzyme").textContent = state.prestigeMultiplier > 1 ? "Ativo" : "Nenhum";
+  document.getElementById("stat-solar").textContent = state.hasSolar;
+}
+
+function togglePause() {
+  if (!state.isStarted) return;
+  state.isPaused = !state.isPaused;
+  const overlay = document.getElementById("pause-overlay");
+  const canvas = document.getElementById("canvas");
+  const btn = document.getElementById("btnPause");
+
+  if (state.isPaused) {
+    overlay.style.display = "flex";
+    canvas.classList.add("paused-anim");
+    btn.textContent = "Continuar";
+    btn.classList.add("paused-active");
+  } else {
+    overlay.style.display = "none";
+    canvas.classList.remove("paused-anim");
+    btn.textContent = "Pausar (Espaço)";
+    btn.classList.remove("paused-active");
+  }
+}
+
+function toggleOverdrive() {
+  state.isOverdrive = !state.isOverdrive;
+  const btn = document.getElementById("btnOverdrive");
+  if (state.isOverdrive) {
+    btn.textContent = "Overdrive ON";
+    btn.classList.add("active-mode");
+    spawnJuicyText(150, 150, "OVERDRIVE ATIVADO: CONSUMO DE ENERGIA TRIPLICADO!", "var(--alert-red)");
+  } else {
+    btn.textContent = "Overdrive OFF";
+    btn.classList.remove("active-mode");
+  }
+}
+
+function powerTick() {
+  if (state.isPaused) return;
+  
+  let baseDrain = 2 + (state.drones * 1.5);
+  let finalDrain = state.isOverdrive ? (baseDrain * 3) : baseDrain;
+  state.powerGrid = Math.max(0, state.powerGrid - Math.floor(finalDrain));
+  
+  // PENALIDADE REAL: Apagão de energia elétrica!
+  if (state.powerGrid <= 0) {
+    state.powerGrid = 30;
+    let penalty = Math.floor(state.money * 0.15);
+    state.money = Math.max(0, state.money - penalty);
+    spawnJuicyText(100, 100, `⚡ QUEDA DE DISJUNTOR! MULTA DE MANUTENÇÃO: -$${penalty}`, "var(--alert-red)");
+  }
+  updateUI();
+}
+
+function runChemicalPassiveCode() {
+  if (state.isPaused) return;
+  
+  // RESOLVIDO: Insumos Circulares crescem passivamente por automação industrial das refinarias!
+  state.secMateria += 2;
+  
+  if (state.hasSolar > 0) {
+    state.powerGrid = Math.min(100, state.powerGrid + (state.hasSolar * 4));
+  }
+
+  if (state.hasDepolim > 0 && state.wasteCount > 0) {
+    let melt = Math.min(state.hasDepolim * 2, state.wasteCount);
+    state.wasteCount -= melt;
+    let profit = Math.floor(melt * 55 * state.prestigeMultiplier);
+    state.money += profit;
+    spawnJuicyText(120, 140, `DEPALETIZADOR AUTOMÁTICO: +$${profit}`, "var(--chemical-blue)");
+  }
+  
+  document.getElementById("edu-text").textContent = EDU_FACTS[Math.floor(Math.random() * EDU_FACTS.length)];
+  updateUI();
+}
+
+function tick() {
+  if (state.isPaused) return;
+  state.waveTimer++;
+
+  if (state.waveTimer % 35 === 0) {
+    state.isCrisis = true;
+    state.fallSpeed += 2;
+    document.getElementById("crisis-alert").style.display = "block";
+    setTimeout(() => {
+      state.isCrisis = false;
+      state.fallSpeed = Math.max(6, state.fallSpeed - 2);
+      document.getElementById("crisis-alert").style.display = "none";
+    }, 10000);
+  }
+
+  let flow = state.isCrisis ? 4 : 1;
+  if (state.waveTimer % 2 === 0) {
+    for (let i = 0; i < flow; i++) {
+      if (state.wasteCount < state.maxWasteLimit) {
+        state.wasteCount++;
+        spawnFallingBlock();
+      }
+    }
+  }
+
+  if (state.powerGrid > 0 && state.drones > 0 && state.activeBlocks.length > 0) {
+    let tasks = Math.min(state.drones, state.activeBlocks.length);
+    for (let i = 0; i < tasks; i++) {
+      let tgt = state.activeBlocks[Math.floor(Math.random() * state.activeBlocks.length)];
+      if (tgt && tgt.yPos < 150) {
+        triggerFlashEffect(tgt.lane);
+        processSuccessfulHit(tgt);
+        break;
+      }
+    }
+  }
+
+  updateUI();
+  if (state.wasteCount >= state.maxWasteLimit) endGame();
+}
+
+function spawnFallingBlock() {
+  let targetLane = Math.floor(Math.random() * 3); // Apenas 3 colunas (Q, W, E)
+  const laneContainer = document.getElementById(`lane-${targetLane}`);
+  if (!laneContainer) return;
+  
+  const block = document.createElement("div");
+  block.className = "scrap-falling";
+  block.style.backgroundColor = LANE_COLORS[targetLane];
+  block.style.top = "0px";
+  laneContainer.appendChild(block);
+
+  state.activeBlocks.push({ element: block, lane: targetLane, yPos: 350 });
+}
+
+function updatePhysics() {
+  if (state.isPaused) return;
+  const containerHeight = 350; 
+  for (let i = state.activeBlocks.length - 1; i >= 0; i--) {
+    let block = state.activeBlocks[i];
+    block.yPos -= state.fallSpeed;
+    block.element.style.top = (containerHeight - block.yPos) + "px";
+
+    if (block.yPos <= 10) {
+      block.element.remove();
+      state.activeBlocks.splice(i, 1);
+      state.wasteCount = Math.max(0, state.wasteCount - 1);
+      state.combo = 1.0; 
+      updateUI();
+    }
+  }
+}
+
+function checkLaneHit(laneIndex) {
+  for (let i = 0; i < state.activeBlocks.length; i++) {
+    let block = state.activeBlocks[i];
+    if (block.lane === laneIndex && block.yPos <= 130) {
+      triggerFlashEffect(laneIndex);
+      processSuccessfulHit(block);
+      break;
+    }
+  }
+}
+
+function triggerFlashEffect(laneIndex) {
+  let laneEl = document.getElementById(`lane-${laneIndex}`);
+  if (laneEl) laneEl.classList.add("hit-flash");
+  setTimeout(() => { if (laneEl) laneEl.classList.remove("hit-flash"); }, 100);
+}
+
+function spawnJuicyText(x, y, text, color) {
+  const canvas = document.getElementById("canvas");
+  const floater = document.createElement("div");
+  floater.className = "floating-hit-text";
+  floater.style.left = x + "px";
+  floater.style.top = y + "px";
+  floater.style.color = color || "#fff";
+  floater.textContent = text;
+  canvas.appendChild(floater);
+  setTimeout(() => floater.remove(), 650);
+}
+
+function processSuccessfulHit(block) {
+  block.element.remove();
+  let idx = state.activeBlocks.indexOf(block);
+  if (idx !== -1) state.activeBlocks.splice(idx, 1);
+
+  state.combo += 0.15;
+  state.wasteCount = Math.max(0, state.wasteCount - 1);
+  
+  // RESOLVIDO: Insumos aumentam substancialmente no acerto direto!
+  state.secMateria += 3;
+  
+  let basePayout = 35 * state.combo;
+  if (state.isOverdrive) basePayout *= 2;
+  
+  let finalPayout = Math.floor(basePayout * state.prestigeMultiplier);
+  state.money += finalPayout;
+  
+  let calculatedX = 380 + (block.lane * 90);
+  spawnJuicyText(calculatedX, 200, `+$${finalPayout} (u+3)`, LANE_COLORS[block.lane]);
+  spawnCargoVisual(70, 45, 45, 15, "var(--circular-green)");
+  updateUI();
+}
+
+function runPhysicalBelts() {
+  if (state.isPaused || state.powerGrid <= 0) return;
+  spawnCargoVisual(15, 12, 38, 12, "var(--q-color)");
+  spawnCargoVisual(42, 22, 42, 58, "var(--factorio-orange)");
+}
+
+function spawnCargoVisual(fromTop, fromLeft, toTop, toLeft, color) {
+  const canvas = document.getElementById("canvas");
+  const particle = document.createElement("div");
+  particle.className = "cargo";
+  particle.style.backgroundColor = color;
+  particle.style.top = fromTop + "%"; particle.style.left = fromLeft + "%";
+  canvas.appendChild(particle);
+
+  setTimeout(() => {
+    if(state.isPaused) return;
+    particle.style.transition = "all 800ms linear";
+    particle.style.top = toTop + "%";
+    particle.style.left = toLeft + "%";
+  }, 20);
+  setTimeout(() => { particle.remove(); }, 850);
+}
+
+function buyMod(type) {
+  if (type === 'drone' && state.money >= 120) {
+    state.money -= 120; state.drones++;
+  } else if (type === 'storage' && state.money >= 110) {
+    state.money -= 110; state.maxWasteLimit += 15;
+  } else if (type === 'depolim' && state.secMateria >= 20) {
+    state.secMateria -= 20; state.hasDepolim++;
+    spawnJuicyText(200, 100, "REFINARIA QUÍMICA CONSTRUÍDA!", "var(--chemical-blue)");
+  } else if (type === 'solar' && state.secMateria >= 30) {
+    state.secMateria -= 30; state.hasSolar++;
+    spawnJuicyText(200, 100, "PAINÉIS ENERGÉTICOS ADICIONADOS!", "var(--power-yellow)");
+  } else if (type === 'prestige' && state.money >= 1000) {
+    state.money = 250; state.wasteCount = 0; state.maxWasteLimit = 45;
+    state.fallSpeed = 6; state.drones = 0; state.hasDepolim = 0; state.hasSolar = 0;
+    state.prestigeMultiplier += 0.5;
+    state.activeBlocks.forEach(b => b.element.remove());
+    state.activeBlocks = [];
+    spawnJuicyText(150, 150, "MATRIZ EVOLUÍDA: CERTIFICAÇÃO GREEN-TIER CONCEDIDA (+50% TOTAL)!", "var(--circular-green)");
+  }
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById("valMoney").textContent = state.money;
+  document.getElementById("valWaste").textContent = state.wasteCount;
+  document.getElementById("maxWaste").textContent = state.maxWasteLimit;
+  document.getElementById("valCombo").textContent = "x" + state.combo.toFixed(2);
+  document.getElementById("valSecMateria").textContent = state.secMateria;
+  document.getElementById("buf-circular").textContent = state.secMateria + " u";
+  document.getElementById("valPower").textContent = state.powerGrid;
+  document.getElementById("valPrestige").textContent = "x" + state.prestigeMultiplier.toFixed(1);
+  
+  let calcTax = Math.min(30, 5 + Math.floor(state.wasteCount / 2));
+  document.getElementById("valTax").textContent = calcTax + "%";
+
+  document.getElementById("up-drone").disabled = state.money < 120;
+  document.getElementById("up-storage").disabled = state.money < 110;
+  document.getElementById("up-chem-depolim").disabled = state.secMateria < 20;
+  document.getElementById("up-chem-solar").disabled = state.secMateria < 30;
+  document.getElementById("up-prestige").disabled = state.money < 1000;
+}
+
+function endGame() {
+  clearInterval(loopCore); clearInterval(loopPhysics); clearInterval(loopVisualBelts); clearInterval(loopPower); clearInterval(loopChemicalPassive);
+  document.getElementById("gameover-screen").style.display = "flex";
+}
+
+updateUI();
+</script>
+</body>
+</html>

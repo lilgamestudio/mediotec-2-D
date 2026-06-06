@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwash Inc. - Painel de Controle</title>
+<style>
+:root {
+  --ink: #12110e;
+  --paper: #c5b59b;
+  --paper-deep: #9b876b;
+  --desk: #1a1613;
+  --desk-dark: #0a0807;
+  --panel: #26201b;
+  --line: #3d3126;
+  --red: #721c14;
+  --green: #1b442f;
+  --blue: #16344d;
+  --yellow: #755815;
+  --cream: #decba5;
+  --shadow: rgba(0, 0, 0, 0.7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Courier New", Courier, monospace;
+  background: 
+    radial-gradient(circle at 50% 30%, #312821, var(--desk) 65%, var(--desk-dark) 100%);
+  user-select: none;
+  padding: 12px;
+}
+
+body::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: 
+    linear-gradient(rgba(15, 12, 10, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,0.04) 0 2px, transparent 2px 4px);
+  z-index: 999;
+  opacity: 0.35;
+  pointer-events: none;
+  background-size: 100% 4px, 8px 8px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.shell {
+  width: min(1360px, 100%);
+  margin: 0 auto;
+}
+
+/* Telas do Jogo (Gerenciamento de Visibilidade) */
+.game-screen {
+  display: none;
+}
+.game-screen.active {
+  display: block;
+}
+
+/* Estilização da Intro / Menu */
+.intro-container {
+  max-width: 720px;
+  margin: 40px auto;
+  background: linear-gradient(135deg, #221c17, #130f0c);
+  border: 4px solid var(--line);
+  box-shadow: 0 20px 50px var(--shadow);
+  padding: 30px;
+  color: var(--cream);
+  position: relative;
+}
+
+.intro-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, transparent 60%, rgba(0,0,0,0.7));
+  pointer-events: none;
+}
+
+.intro-header {
+  text-align: center;
+  border-bottom: 3px double var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.intro-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  text-transform: uppercase;
+  color: #ebdcb9;
+  text-shadow: 3px 3px 0px var(--red);
+  letter-spacing: -2px;
+}
+
+.intro-header p {
+  margin: 8px 0 0;
+  color: var(--paper-deep);
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.manifesto-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #2d241e;
+  padding: 16px;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #c7b699;
+  border-left: 4px solid var(--yellow);
+}
+
+.instructions-title {
+  text-transform: uppercase;
+  color: #ebdcb9;
+  font-size: 1.1rem;
+  margin: 0 0 10px;
+  letter-spacing: 1px;
+}
+
+.instruction-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.instruction-item b {
+  color: var(--yellow);
+}
+
+/* Topbar do Jogo Principal */
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  color: var(--cream);
+  border: 3px dashed var(--line);
+  background: linear-gradient(#1f1a15, #110e0c);
+  box-shadow: 0 8px 25px var(--shadow);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.brandline h1 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: #e5d4b3;
+  text-shadow: 2px 2px 0px var(--red);
+}
+
+.brandline p, .statline {
+  margin: 4px 0 0;
+  color: #ac9c80;
+  font-size: 0.9rem;
+}
+
+.statline {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  font-weight: 700;
+}
+
+.statline span b {
+  color: #fff;
+  background: #0a0807;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+}
+
+.desk {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.15fr) minmax(300px, 0.95fr);
+  gap: 16px;
+}
+
+.paper, .machine, .stamp-tray, .ledger {
+  border: 3px solid #14110f;
+  box-shadow: 6px 6px 22px var(--shadow);
+  position: relative;
+}
+
+.paper {
+  min-height: 580px;
+  background: 
+    radial-gradient(circle at 100% 0%, rgba(255,255,255,0.12), transparent),
+    repeating-linear-gradient(0deg, transparent 0 25px, rgba(35,22,10,0.07) 26px),
+    var(--paper);
+  padding: 18px;
+}
+
+.folder-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 3px double rgba(30,18,10,0.5);
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.case-tag {
+  padding: 2px 8px;
+  border: 2px solid var(--line);
+  background: rgba(0,0,0,0.08);
+  font-size: 0.8rem;
+}
+
+.document {
+  border: 2px solid rgba(40,25,15,0.55);
+  background: rgba(225,207,172,0.4);
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.document h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  border-bottom: 1px dashed rgba(0,0,0,0.2);
+  padding-bottom: 2px;
+}
+
+.dpp-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dpp-step {
+  font-size: 0.85rem;
+  padding: 6px;
+  background: rgba(0,0,0,0.04);
+  border-left: 3px solid var(--line);
+}
+.dpp-step b { color: var(--red); }
+
+.clue {
+  width: 100%;
+  min-height: 50px;
+  margin: 6px 0;
+  padding: 10px;
+  border: 2px solid #312922;
+  background: rgba(243,227,192,0.85);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 2px 2px 0px #312922;
+}
+.clue:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--blue);
+  border-color: var(--blue);
+}
+.clue.selected {
+  background: #c3d4d0;
+  border: 2px solid var(--blue);
+  box-shadow: 2px 2px 0px var(--blue);
+}
+.clue.solved {
+  opacity: 0.3;
+  text-decoration: line-through;
+  cursor: default;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.machine {
+  min-height: 580px;
+  background: linear-gradient(135deg, #192022, #0d1213);
+  color: #a3c2b7;
+  padding: 16px;
+}
+
+.screen-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 2px dashed #3a4d4f;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.screen-head h2 {
+  margin: 0;
+  color: #e0f2ec;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.lens-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.lens {
+  min-height: 38px;
+  border: 2px solid #4a5e5c;
+  background: #141c1d;
+  color: #8faea4;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.lens.active {
+  color: #fff;
+  border-color: #dfc67d;
+  background: #423312;
+  box-shadow: inset 0 0 6px #000;
+}
+
+.factory {
+  position: relative;
+  height: 300px;
+  border: 4px solid #06090a;
+  background: linear-gradient(180deg, #111a1f 0%, #20291c 45%, #0d1b21 100%);
+  filter: contrast(1.1);
+}
+.factory::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle x at 50% 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6)), repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.building { position: absolute; background: #413d35; border: 2px solid #141311; }
+.building.main { width: 44%; height: 38%; left: 12%; top: 36%; }
+.building.sorting { width: 34%; height: 28%; right: 8%; top: 46%; }
+.river {
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 30%;
+  background: linear-gradient(180deg, #10232e, #0c151b);
+  border-top: 2px solid #162f3e;
+}
+.sorting-chute {
+  position: absolute;
+  width: 12%; height: 16%;
+  right: 20%; bottom: 22%;
+  background: #2b2b29;
+  border: 2px solid #050505;
+}
+
+.hotspot {
+  position: absolute;
+  border: 2px dashed transparent;
+  background: transparent;
+  cursor: crosshair;
+  z-index: 10;
+}
+
+.factory[data-lens="thermal"] [data-scan="carbon"] {
+  border-color: #ff4a3d;
+  background: rgba(255, 40, 20, 0.25);
+  box-shadow: 0 0 25px rgba(255, 40, 20, 0.6);
+}
+.factory[data-lens="chemical"] [data-scan="composition"] {
+  border-color: #3dff85;
+  background: rgba(30, 255, 90, 0.25);
+  box-shadow: 0 0 25px rgba(30, 255, 90, 0.6);
+}
+.factory[data-lens="ledger"] [data-scan="manifest"] {
+  border-color: #3da2ff;
+  background: rgba(20, 120, 255, 0.25);
+  box-shadow: 0 0 25px rgba(20, 120, 255, 0.6);
+}
+
+.scan-log {
+  min-height: 102px;
+  margin-top: 12px;
+  padding: 10px;
+  background: #06090a;
+  border: 2px solid #314243;
+  color: #92b5a7;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.stamp-tray {
+  min-height: 580px;
+  background: linear-gradient(#3d2e23, #17100b);
+  padding: 16px;
+  color: var(--cream);
+  border: 4px solid #1a120d;
+}
+
+.stamp-tray h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.action {
+  width: 100%;
+  min-height: 50px;
+  margin: 8px 0;
+  border: 3px solid #0f0a08;
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #000;
+}
+.action:active { transform: translateY(2px); box-shadow: 0 2px 0 #000; }
+.action:disabled { opacity: 0.25; cursor: not-allowed; transform: none !important; box-shadow: 0 4px 0 #000 !important; }
+
+.link { background: var(--blue); }
+.approve { background: var(--green); }
+.deny { background: var(--red); }
+.next { background: var(--yellow); color: #000; }
+
+.ledger {
+  margin-top: 12px;
+  min-height: 130px;
+  color: var(--ink);
+  background: #bcab8f;
+  border: 2px dashed #443728;
+  padding: 10px;
+  line-height: 1.4;
+  font-size: 0.85rem;
+}
+
+.stamp {
+  display: block;
+  margin: 10px auto 0;
+  padding: 6px 12px;
+  border: 4px double currentColor;
+  transform: rotate(-4deg);
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+}
+.stamp.clean { color: #0c331e; }
+.stamp.fraud { color: #4c110b; }
+
+.end-card {
+  grid-column: 1 / -1;
+  min-height: 540px;
+  display: grid;
+  place-items: center;
+  background: #bfae93;
+  border: 4px double #221a14;
+  padding: 30px;
+  box-shadow: 0 15px 35px var(--shadow);
+}
+.end-card div { max-width: 580px; text-align: center; }
+.end-card h2 { font-size: 2.5rem; text-transform: uppercase; margin: 0 0 14px; border-bottom: 3px dashed #221a14; padding-bottom: 8px; }
+
+@media (max-width: 1024px) {
+  .desk { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="shell">
+
+  <!-- ================= TELA DE INTRO / MENU ================= -->
+  <section id="screen-menu" class="game-screen active">
+    <div class="intro-container">
+      <header class="intro-header">
+        <h1>Greenwash Inc.</h1>
+        <p>Módulo de Rastreabilidade & Economia Circular</p>
+      </header>
+      
+      <div class="manifesto-box">
+        &gt; <b>DIRETRIZ DO MINISTÉRIO:</b> O mercado da moda inflou os Passaportes Digitais de Produto (DPP) com falsas promessas de circularidade. Seu dever é cruzar alegações públicas com espectroscopia de campo, manifestos de reciclagem de cooperativas e faturamento logístico. Proteja o ecossistema. Intercepte os fraudadores.
+      </div>
+
+      <div style="margin-bottom: 26px;">
+        <h3 class="instructions-title">Protocolo de Operação:</h3>
+        <div class="instruction-item">
+          <span><b>01.</b></span>
+          <span>Analise o <b>Passaporte Digital (DPP)</b> e as alegações públicas da marca têxtil.</span>
+        </div>
+        <div class="instruction-item">
+          <span><b>02.</b></span>
+          <span>Alterne os sensores do <b>Visor de Campo</b> (Térmico, Químico ou Manifesto) para revelar anomalias físicas escondidas.</span>
+        </div>
+        <div class="instruction-item">
+          <span><b>03.</b></span>
+          <span>Selecione uma alegação e a evidência correspondente, então clique em <b>"Fixar Contradição"</b> para expor a quebra de ciclo.</span>
+        </div>
+        <div class="instruction-item">
+          <span><b>04.</b></span>
+          <span>Aplique o carimbo final. Aprovações incorretas ou falhas derrubam sua <b>Credibilidade</b>.</span>
+        </div>
+      </div>
+
+      <button class="action next" id="startBtn" style="min-height: 56px; font-size: 1.1rem;">
+        Autenticar e Iniciar Turno
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= TELA DO JOGO PRINCIPAL ================= -->
+  <section id="screen-game" class="game-screen">
+    <header class="topbar">
+      <div class="brandline">
+        <h1>Greenwash Inc.</h1>
+        <p>Módulo de Rastreabilidade e Auditoria Circular — Rastreie, Conecte, Intercepte.</p>
+      </div>
+      <div class="statline">
+        <span>Caso <b id="caseCount">1/3</b></span>
+        <span>Orçamento Eco <b id="budget">$5000</b></span>
+        <span>Credibilidade <b id="credibility">100%</b></span>
+      </div>
+    </header>
+
+    <section class="desk" id="desk">
+      <!-- Passaporte Digital do Produto (DPP) -->
+      <article class="paper">
+        <div class="folder-title">
+          <span>Passaporte Digital (DPP)</span>
+          <span class="case-tag" id="brandTag">---</span>
+        </div>
+        
+        <div class="document">
+          <h2 id="caseTitle" style="margin:0 0 6px; font-size:1rem; text-transform:uppercase;">---</h2>
+          <p id="caseBrief" style="margin:0; font-size:0.88rem; line-height:1.35;">---</p>
+        </div>
+
+        <div class="document">
+          <h3>Jornada Circular Declarada</h3>
+          <div class="dpp-chain" id="dppChain"></div>
+        </div>
+
+        <div class="document">
+          <h3>Alegações Públicas da Marca</h3>
+          <div id="claims"></div>
+        </div>
+      </article>
+
+      <!-- Viewfinder Field Unit & Spectroscopy -->
+      <article class="machine">
+        <div class="screen-head">
+          <h2>Espectroscopia e Análise de Campo</h2>
+          <span id="scanCount">0 scans</span>
+        </div>
+        <div class="lens-row">
+          <button class="lens active" data-lens-button="normal">Físico</button>
+          <button class="lens" data-lens-button="thermal">Térmico (LCA)</button>
+          <button class="lens" data-lens-button="chemical">Composição</button>
+          <button class="lens" data-lens-button="ledger">Manifesto</button>
+        </div>
+        <div class="factory" id="factory" data-lens="normal">
+          <div class="river"></div>
+          <div class="building main"></div>
+          <div class="building sorting"></div>
+          <div class="sorting-chute"></div>
+          
+          <button class="hotspot" data-scan="carbon" style="left: 12%; top: 36%; width: 44%; height: 38%;" aria-label="Análise de emissões"></button>
+          <button class="hotspot" data-scan="composition" style="left: 0%; bottom: 0%; width: 100%; height: 30%;" aria-label="Espectroscopia de fibras no descarte"></button>
+          <button class="hotspot" data-scan="manifest" style="right: 8%; top: 46%; width: 34%; height: 28%;" aria-label="Manifesto de triagem da cooperativa"></button>
+        </div>
+        <div class="scan-log" id="scanLog">&gt; Monte uma lente analítica para inspecionar as vulnerabilidades da cadeia.</div>
+      </article>
+
+      <!-- Painel de Amostragem Interna e Veredito -->
+      <aside class="stamp-tray">
+        <h2>Evidências Internas / Amostras</h2>
+        <div class="document">
+          <h3>Dados de Auditoria Irrefutáveis</h3>
+          <div id="evidence"></div>
+        </div>
+        <button class="action link" id="linkBtn" disabled>Fixar Contradição</button>
+        <button class="action approve" id="cleanBtn">Aprovar Circularidade</button>
+        <button class="action deny" id="fraudBtn">Sancionar Greenwashing</button>
+        <button class="action next" id="nextBtn" hidden>Próximo Caso</button>
+        <div class="ledger" id="ledger">&gt; Relacione uma fraude documental ou física ao passaporte digital do produto.</div>
+      </aside>
+    </section>
+  </section>
+</main>
+
+<script>
+const cases = [
+  {
+    brand: "AeroKnit Co.",
+    title: "Blusa de Alta Performance '100% Reciclável'",
+    brief: "A marca lançou um programa de retorno onde promete que toda peça coletada vira um novo fio de alta performance.",
+    dpp: {
+      origem: "Fibras de Poliéster reciclado PET pré-consumo.",
+      producao: "Fiação limpa com baixa emissão de CO2.",
+      circular: "Logística reversa integrada com a Cooperativa de Triagem Sul."
+    },
+    claims: [
+      { id: "c1", text: "A pegada de carbono da fiação principal é neutra através de energia biomassa." },
+      { id: "c2", text: "Composição pura: Tecido feito de monomaterial que facilita a reciclagem mecânica infinita." },
+      { id: "c3", text: "100% das peças devolvidas nas lojas são processadas e triadas pela cooperativa parceira." }
+    ],
+    evidence: [
+      { id: "e1", source: "LCA Térmico", text: "Análise de calor indica caldeira pesada a óleo combustível ativa na planta têxtil.", fromScan: "carbon" },
+      { id: "e2", source: "Lab Fibras", text: "Espectroscopia detectou 8% de Elastano fundido na fibra. Inviabiliza a reciclagem mecânica.", fromScan: "composition" },
+      { id: "e3", source: "Cooperativa", text: "Manifesto de entrada revela que 70% das coletas foram desviadas para incineração por falta de infraestrutura.", fromScan: "manifest" }
+    ],
+    links: { c1: "e1", c2: "e2", c3: "e3" }
+  },
+  {
+    brand: "Origem Denim",
+    title: "Jeans Circular com Algodão Desfibrado",
+    brief: "Linha de jeans construída em parceria com cooperativas locais usando retalhos de pós-consumo.",
+    dpp: {
+      origem: "50% Algodão Virgem / 50% Algodão Desfibrado de roupas velhas.",
+      producao: "Lavanderia com zero químicos pesados.",
+      circular: "Parceria direta pagando valor justo a cooperativas de catadores."
+    },
+    claims: [
+      { id: "c1", text: "Fixação de cor azul feita com extrato botânico biodegradável, livre de metais pesados." },
+      { id: "c2", text: "Livros contábeis provam bônus financeiro repassado diretamente às cooperativas recicladoras." }
+    ],
+    evidence: [
+      { id: "e1", source: "Lab Fibras", text: "Sensores químicos na água descartada confirmam resíduos pesados de cromo e fixadores sintéticos.", fromScan: "composition" },
+      { id: "e2", source: "Manifesto", text: "Recibos da Cooperativa auditada registram pagamentos abaixo do salário mínimo comercial de triagem.", fromScan: "manifest" }
+    ],
+    links: { c1: "e1", c2: "e2" }
+  },
+  {
+    brand: "Verde Básico",
+    title: "Camisetas Orgânicas Rastreadas via Blockchain",
+    brief: "Promessa de transparência radical onde cada lote pode ser verificado pelo consumidor final.",
+    dpp: {
+      origem: "Algodão com certificação orgânica activa.",
+      producao: "Tecelagem local de base familiar.",
+      circular: "Peça totalmente compostável após o fim da vida útil."
+    },
+    claims: [
+      { id: "c1", text: "Certificado orgânico internacional TC-900 cobre todo o volume de algodão do lote." },
+      { id: "c2", text: "Costura executada integralmente na oficina local certificada de base familiar." }
+    ],
+    evidence: [
+      { id: "e1", source: "Certificado", text: "O Certificado TC-900 anexado no bloco de dados pertence a outra empresa e expirou em 2023." },
+      { id: "e2", source: "Manifesto", text: "Manifesto de transporte revela subcontratação de galpões clandestinos não mapeados na jornada.", fromScan: "manifest" }
+    ],
+    links: { c1: "e1", c2: "e2" }
+  }
+];
+
+let caseIndex = 0;
+let budget = 5000;
+let credibility = 100;
+let selectedClaim = null;
+let selectedEvidence = null;
+let activeLens = "normal";
+let foundScans = new Set();
+let exposed = new Set();
+
+const el = {
+  screenMenu: document.getElementById("screen-menu"),
+  screenGame: document.getElementById("screen-game"),
+  startBtn: document.getElementById("startBtn"),
+  desk: document.getElementById("desk"),
+  caseCount: document.getElementById("caseCount"),
+  budget: document.getElementById("budget"),
+  credibility: document.getElementById("credibility"),
+  brandTag: document.getElementById("brandTag"),
+  caseTitle: document.getElementById("caseTitle"),
+  caseBrief: document.getElementById("caseBrief"),
+  dppChain: document.getElementById("dppChain"),
+  claims: document.getElementById("claims"),
+  evidence: document.getElementById("evidence"),
+  factory: document.getElementById("factory"),
+  scanLog: document.getElementById("scanLog"),
+  scanCount: document.getElementById("scanCount"),
+  ledger: document.getElementById("ledger"),
+  linkBtn: document.getElementById("linkBtn"),
+  cleanBtn: document.getElementById("cleanBtn"),
+  fraudBtn: document.getElementById("fraudBtn"),
+  nextBtn: document.getElementById("nextBtn")
+};
+
+function beep(freq, duration = 0.08, type = "square") {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  const ctx = beep.ctx || (beep.ctx = new AudioContext());
+  if (ctx.state === "suspended") ctx.resume();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.value = 0.03;
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+
+function activeCase() {
+  return cases[caseIndex];
+}
+
+// Transição do menu para o jogo
+el.startBtn.addEventListener("click", () => {
+  beep(440, 0.1, "sine");
+  setTimeout(() => beep(660, 0.15, "sine"), 80);
+  
+  el.screenMenu.classList.remove("active");
+  el.screenGame.classList.add("active");
+  renderCase();
+});
+
+function renderCase() {
+  const file = activeCase();
+  selectedClaim = null;
+  selectedEvidence = null;
+  foundScans = new Set();
+  exposed = new Set();
+  activeLens = "normal";
+
+  el.caseCount.textContent = `${caseIndex + 1}/${cases.length}`;
+  el.brandTag.textContent = file.brand;
+  el.caseTitle.textContent = file.title;
+  el.caseBrief.textContent = file.brief;
+  el.scanCount.textContent = "0 scans";
+  el.scanLog.textContent = "> Sistema calibrado. Selecione os espectros de lente para escanear anomalias físicas.";
+  el.ledger.textContent = "> Localize evidências ocultas na cadeia e confronte com as alegações falsas do DPP.";
+  el.factory.dataset.lens = "normal";
+  document.querySelectorAll("[data-lens-button]").forEach(btn => btn.classList.toggle("active", btn.dataset.lensButton === "normal"));
+
+  el.dppChain.innerHTML = `
+    <div class="dpp-step"><b>[ORIGEM]</b> ${file.dpp.origem}</div>
+    <div class="dpp-step"><b>[PRODUÇÃO]</b> ${file.dpp.producao}</div>
+    <div class="dpp-step"><b>[CIRCULARIDADE]</b> ${file.dpp.circular}</div>
+  `;
+
+  el.claims.innerHTML = file.claims.map(claim =>
+    `<button class="clue" data-claim="${claim.id}"><b>${claim.id.toUpperCase()}</b> ${claim.text}</button>`
+  ).join("");
+
+  renderEvidence();
+  setVerdictMode(false);
+  updateStats();
+}
+
+function renderEvidence() {
+  const file = activeCase();
+  el.evidence.innerHTML = file.evidence
+    .filter(item => !item.fromScan || foundScans.has(item.fromScan))
+    .map(item => `<button class="clue" data-evidence="${item.id}"><b>${item.source}</b> ${item.text}</button>`)
+    .join("") || `<p class="small">Nenhuma amostra coletada. Use as lentes de espectroscopia no visor de campo.</p>`;
+  updateLinkState();
+}
+
+function updateStats() {
+  el.budget.textContent = `$${budget}`;
+  el.credibility.textContent = `${credibility}%`;
+}
+
+function updateLinkState() {
+  el.linkBtn.disabled = !(selectedClaim && selectedEvidence);
+}
+
+function clearSelection() {
+  selectedClaim = null;
+  selectedEvidence = null;
+  document.querySelectorAll(".clue").forEach(node => node.classList.remove("selected"));
+  updateLinkState();
+}
+
+function setVerdictMode(done) {
+  el.linkBtn.hidden = done;
+  el.cleanBtn.hidden = done;
+  el.fraudBtn.hidden = done;
+  el.nextBtn.hidden = !done;
+}
+
+function writeLedger(message, tone) {
+  el.ledger.innerHTML = `&gt; ${message}${tone ? `<div class="stamp ${tone}">${tone === "clean" ? "Circular" : "Fraude"}</div>` : ""}`;
+}
+
+document.addEventListener("click", event => {
+  const claimBtn = event.target.closest("[data-claim]");
+  const evidenceBtn = event.target.closest("[data-evidence]");
+  const lensBtn = event.target.closest("[data-lens-button]");
+  const scanBtn = event.target.closest("[data-scan]");
+
+  if (claimBtn && !claimBtn.classList.contains("solved")) {
+    selectedClaim = claimBtn.dataset.claim;
+    document.querySelectorAll("[data-claim]").forEach(node => node.classList.remove("selected"));
+    claimBtn.classList.add("selected");
+    beep(200, 0.05, "triangle");
+    updateLinkState();
+  }
+
+  if (evidenceBtn && !evidenceBtn.classList.contains("solved")) {
+    selectedEvidence = evidenceBtn.dataset.evidence;
+    document.querySelectorAll("[data-evidence]").forEach(node => node.classList.remove("selected"));
+    evidenceBtn.classList.add("selected");
+    beep(240, 0.05, "triangle");
+    updateLinkState();
+  }
+
+  if (lensBtn) {
+    activeLens = lensBtn.dataset.lensButton;
+    el.factory.dataset.lens = activeLens;
+    document.querySelectorAll("[data-lens-button]").forEach(node => node.classList.toggle("active", node === lensBtn));
+    el.scanLog.textContent = `> Filtro [${activeLens.toUpperCase()}] ativado. Varra os pontos estratégicos da cadeia circular.`;
+    beep(activeLens === "normal" ? 150 : 350, 0.05, "sine");
+  }
+
+  if (scanBtn) {
+    inspectHotspot(scanBtn.dataset.scan);
+  }
+});
+
+function inspectHotspot(scanType) {
+  const requiredLens = { carbon: "thermal", composition: "chemical", manifest: "ledger" }[scanType];
+  const evidence = activeCase().evidence.find(item => item.fromScan === scanType);
+
+  if (activeLens !== requiredLens) {
+    el.scanLog.textContent = "> Assinatura espectral incompatível. Altere os sensores do visor.";
+    beep(85, 0.15, "sawtooth");
+    return;
+  }
+
+  if (!evidence) {
+    el.scanLog.textContent = "> O marcador químico/físico analisado está dentro dos parâmetros normais para este lote.";
+    beep(110, 0.1, "sine");
+    return;
+  }
+
+  if (foundScans.has(scanType)) {
+    el.scanLog.textContent = "> Dados estruturais desse ponto já armazenados na memória interna.";
+    return;
+  }
+
+  foundScans.add(scanType);
+  el.scanCount.textContent = `${foundScans.size} scan${foundScans.size === 1 ? "" : "s"}`;
+  el.scanLog.textContent = `> [DESVIO DETECTADO]: ${evidence.text}`;
+  beep(520, 0.08, "sine");
+  setTimeout(() => beep(740, 0.1, "sine"), 60);
+  renderEvidence();
+}
+
+el.linkBtn.addEventListener("click", () => {
+  const file = activeCase();
+  if (file.links[selectedClaim] === selectedEvidence) {
+    exposed.add(selectedClaim);
+    budget += 1000;
+    document.querySelector(`[data-claim="${selectedClaim}"]`)?.classList.add("solved");
+    document.querySelector(`[data-evidence="${selectedEvidence}"]`)?.classList.add("solved");
+    writeLedger("Contradição mapeada com sucesso. Dados falsos expostos no Passaporte Digital. +$1000 Eco-Créditos.");
+    beep(580, 0.07, "sine");
+    setTimeout(() => beep(880, 0.1, "sine"), 60);
+  } else {
+    credibility -= 15;
+    budget -= 400;
+    writeLedger("Erro de cruzamento. Essa evidência não quebra o argumento técnico da alegação escolhida. -$400");
+    beep(95, 0.2, "sawtooth");
+  }
+  clearSelection();
+  updateStats();
+  if (credibility <= 0) endGame();
+});
+
+el.cleanBtn.addEventListener("click", () => stampCase("clean"));
+el.fraudBtn.addEventListener("click", () => stampCase("fraud"));
+el.nextBtn.addEventListener("click", () => {
+  caseIndex++;
+  if (caseIndex >= cases.length) {
+    endGame();
+  } else {
+    renderCase();
+  }
+});
+
+function stampCase(verdict) {
+  const file = activeCase();
+  const totalFrauds = Object.keys(file.links).length;
+  const allExposed = exposed.size === totalFrauds;
+  const actuallyClean = totalFrauds === 0;
+
+  if (verdict === "clean" && (allExposed || actuallyClean) && exposed.size === 0) {
+    budget += 800;
+    writeLedger(`${file.brand} aprovada com sucesso. Rastreabilidade circular limpa. +$800`, "clean");
+  } else if (verdict === "fraud" && allExposed && totalFrauds > 0) {
+    budget += 1500;
+    writeLedger(`${file.brand} multada e exposta publicamente por fraude na cadeia circular. +$1500`, "fraud");
+  } else {
+    credibility -= 30;
+    budget -= 600;
+    const missing = totalFrauds - exposed.size;
+    writeLedger(`Decisão contestada pelo ecossistema. ${missing > 0 ? `Restam ${missing} quebras de rastreabilidade ocultas no DPP.` : "O veredito aplicado viola os relatórios oficiais."} -30 Credibilidade.`);
+  }
+
+  setVerdictMode(true);
+  clearSelection();
+  updateStats();
+  beep(verdict === "fraud" ? 170 : 220, 0.25, "square");
+  if (credibility <= 0) setTimeout(endGame, 400);
+}
+
+function endGame() {
+  const rank = credibility <= 0 ? "Licença de Auditoria Revogada" : budget >= 10000 ? "Diretor de Rastreabilidade" : budget >= 7500 ? "Auditor Sênior" : "Inspecionador de Balcão";
+  el.desk.innerHTML = `
+    <section class="end-card">
+      <div>
+        <h2>${credibility <= 0 ? "Falta de Rigor Técnico" : "Turno Concluído"}</h2>
+        <p>Orçamento Circular Final: <b>$${budget}</b></p>
+        <p>Índice de Credibilidade: <b>${Math.max(0, credibility)}%</b></p>
+        <p>Classificação do Ministério: <b>${rank}</b></p>
+        <button class="action next" onclick="location.reload()">Iniciar Novo Turno</button>
+      </div>
+    </section>
+  `;
+}
+</script>
+</body>
+</html>

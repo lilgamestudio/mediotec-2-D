@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEDIOTEC SENAC - 1º ANO E - P.I - DESAFIO 3 </title>
+<style>
+:root {
+  /* Nova Paleta Neutra + Dark Blue / Cyan Details */
+  --bg-dark: #05070a;
+  --bg-panel: #0d1117;
+  --border-blue: #162a45;
+  --neon-blue: #0066cc;
+  --neon-cyan: #00e5ff;
+  --text-main: #e6edf3;
+  --text-muted: #7d8590;
+  --shadow-blue: rgba(0, 102, 204, 0.25);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text-main);
+  font-family: "Courier New", Courier, monospace;
+  background: 
+    radial-gradient(circle at 50% 50%, #0a1324 0%, var(--bg-dark) 75%);
+  user-select: none;
+  padding: 24px;
+}
+
+/* Efeito de Scanlines de Monitor CRT Traduzido para o Tema Dark Blue */
+body::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.4) 50%),
+    repeating-linear-gradient(45deg, rgba(0, 102, 204, 0.02) 0 2px, transparent 2px 4px);
+  z-index: 999;
+  opacity: 0.4;
+  pointer-events: none;
+  background-size: 100% 4px, 8px 8px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.shell {
+  width: min(1360px, 100%);
+  margin: 0 auto;
+}
+
+/* NOVO LAYOUT: Terminal Assimétrico de Tela Cheia */
+.lil-dashboard {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+/* Barra Lateral de Diagnóstico Técnico */
+.lil-sidebar {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-blue);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.lil-sidebar::before {
+  content: "SYS_STATUS: ONLINE";
+  position: absolute;
+  bottom: 12px;
+  left: 20px;
+  font-size: 0.7rem;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+}
+
+.system-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.system-title span {
+  color: var(--neon-cyan);
+  font-size: 0.8rem;
+  border: 1px solid var(--neon-cyan);
+  padding: 2px 6px;
+  letter-spacing: 1px;
+}
+
+.sys-stat-box {
+  border-left: 2px solid var(--neon-blue);
+  padding-left: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.sys-stat-box div { margin-bottom: 6px; }
+.sys-stat-box b { color: var(--text-main); }
+
+/* Bloco de Conteúdo Principal */
+.lil-main-console {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-blue);
+  box-shadow: 0 12px 40px var(--shadow-blue);
+  padding: 35px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.console-header {
+  border-bottom: 1px solid var(--border-blue);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.console-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  letter-spacing: 2px;
+}
+
+.console-manifesto {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-blue);
+  padding: 20px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #d1dbf0;
+  margin-bottom: 30px;
+}
+
+/* ESTILIZAÇÃO DOS BOTÕES INDUSTRIAIS DA LIL CO */
+.lil-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.lil-btn {
+  width: 100%;
+  min-height: 70px;
+  background: #090d16;
+  border: 2px solid var(--border-blue);
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 900;
+  text-align: left;
+  padding: 14px 20px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.lil-btn:hover {
+  background: #101826;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px var(--shadow-blue);
+  transform: translateY(-2px);
+}
+
+.lil-btn:active {
+  transform: translateY(1px);
+}
+
+.lil-btn-title {
+  display: block;
+  font-size: 1rem;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.lil-btn-subtitle {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--text-muted);
+  text-transform: none;
+  margin-top: 4px;
+}
+
+/* Indicador Técnico de seta lateral nos botões */
+.lil-btn::after {
+  content: "//";
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--neon-blue);
+  font-size: 1.1rem;
+  transition: color 0.2s ease;
+}
+
+.lil-btn:hover::after {
+  color: var(--neon-cyan);
+}
+
+@media (max-width: 900px) {
+  .lil-dashboard { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<main class="shell">
+  
+  <div class="lil-dashboard">
+    
+    <aside class="lil-sidebar">
+      <h1 class="system-title">MEDIOTEC SENAC   <span> 2º  D   </span></h1>
+      
+      <div class="sys-stat-box">
+        <div>CITY: <b style="color: var(--neon-cyan);">RECIFE</b></div>
+        <div>HOST: <b>P.I</b></div>
+        <div>SEC_LEVEL: <b>DESAFIO 3</b></div>
+      </div>
+
+      <div class="sys-stat-box" style="border-color: var(--border-blue); margin-top: auto; margin-bottom: 30px;">
+        <div style="font-size: 0.75rem;">Como criar ferramentas digitais de rastreabilidade e comunicação transparente que eduquem o ecossistema da moda sobre o impacto ambiental dos produtos, conectando marcas, cooperativas de reciclagem e consumidores em um ciclo transparente de economia circular?</div>
+      </div>
+    </aside>
+
+    <section class="lil-main-console">
+      <div>
+        <header class="console-header">
+          <h2>DIRETRIZ DE ENTRADA / SISTEMA DE CONTROLE</h2>
+        </header>
+    
+
+      <div>
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1px;">
+          [ Selecione o ponto de acesso para iniciar ]
+        </div>
+        
+        <div class="lil-action-grid">
+          
+          <a href="GREENWASHING_MENU.html" style="text-decoration: none; display: block;">
+            <button type="button" class="lil-btn">
+              <span class="lil-btn-title">JOGO 1</span>
+              <span class="lil-btn-subtitle">GREENWASHING INC.</span>
+            </button>
+          </a>
+
+          <a href="SHUPL.html" style="text-decoration: none; display: block;">
+            <button type="button" class="lil-btn">
+              <span class="lil-btn-title">JOGO 2</span>
+              <span class="lil-btn-subtitle">CHAIN MODAL</span>
+            </button>
+          </a>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+</body>
+</html>

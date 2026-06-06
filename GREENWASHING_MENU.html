@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenwash Inc. - Painel de Controle</title>
+<style>
+:root {
+  --ink: #12110e;
+  --paper: #c5b59b;
+  --paper-deep: #9b876b;
+  --desk: #1a1613;
+  --desk-dark: #0a0807;
+  --panel: #26201b;
+  --line: #3d3126;
+  --red: #721c14;
+  --green: #1b442f;
+  --blue: #16344d;
+  --yellow: #755815;
+  --cream: #decba5;
+  --shadow: rgba(0, 0, 0, 0.7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Courier New", Courier, monospace;
+  background: 
+    radial-gradient(circle at 50% 30%, #312821, var(--desk) 65%, var(--desk-dark) 100%);
+  user-select: none;
+  padding: 12px;
+}
+
+body::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: 
+    linear-gradient(rgba(15, 12, 10, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,0.04) 0 2px, transparent 2px 4px);
+  z-index: 999;
+  opacity: 0.35;
+  pointer-events: none;
+  background-size: 100% 4px, 8px 8px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.shell {
+  width: min(1360px, 100%);
+  margin: 0 auto;
+}
+
+/* Telas do Jogo (Gerenciamento de Visibilidade) */
+.game-screen {
+  display: none;
+}
+.game-screen.active {
+  display: block;
+}
+
+/* Estilização da Intro / Menu */
+.intro-container {
+  max-width: 720px;
+  margin: 40px auto;
+  background: linear-gradient(135deg, #221c17, #130f0c);
+  border: 4px solid var(--line);
+  box-shadow: 0 20px 50px var(--shadow);
+  padding: 30px;
+  color: var(--cream);
+  position: relative;
+}
+
+.intro-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, transparent 60%, rgba(0,0,0,0.7));
+  pointer-events: none;
+}
+
+.intro-header {
+  text-align: center;
+  border-bottom: 3px double var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.intro-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  text-transform: uppercase;
+  color: #ebdcb9;
+  text-shadow: 3px 3px 0px var(--red);
+  letter-spacing: -2px;
+}
+
+.intro-header p {
+  margin: 8px 0 0;
+  color: var(--paper-deep);
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.manifesto-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #2d241e;
+  padding: 16px;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #c7b699;
+  border-left: 4px solid var(--yellow);
+}
+
+.instructions-title {
+  text-transform: uppercase;
+  color: #ebdcb9;
+  font-size: 1.1rem;
+  margin: 0 0 10px;
+  letter-spacing: 1px;
+}
+
+.instruction-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.instruction-item b {
+  color: var(--yellow);
+}
+
+/* Topbar do Jogo Principal */
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  color: var(--cream);
+  border: 3px dashed var(--line);
+  background: linear-gradient(#1f1a15, #110e0c);
+  box-shadow: 0 8px 25px var(--shadow);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.brandline h1 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: #e5d4b3;
+  text-shadow: 2px 2px 0px var(--red);
+}
+
+.brandline p, .statline {
+  margin: 4px 0 0;
+  color: #ac9c80;
+  font-size: 0.9rem;
+}
+
+.statline {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  font-weight: 700;
+}
+
+.statline span b {
+  color: #fff;
+  background: #0a0807;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+}
+
+.desk {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.15fr) minmax(300px, 0.95fr);
+  gap: 16px;
+}
+
+.paper, .machine, .stamp-tray, .ledger {
+  border: 3px solid #14110f;
+  box-shadow: 6px 6px 22px var(--shadow);
+  position: relative;
+}
+
+.paper {
+  min-height: 580px;
+  background: 
+    radial-gradient(circle at 100% 0%, rgba(255,255,255,0.12), transparent),
+    repeating-linear-gradient(0deg, transparent 0 25px, rgba(35,22,10,0.07) 26px),
+    var(--paper);
+  padding: 18px;
+}
+
+.folder-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 3px double rgba(30,18,10,0.5);
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.case-tag {
+  padding: 2px 8px;
+  border: 2px solid var(--line);
+  background: rgba(0,0,0,0.08);
+  font-size: 0.8rem;
+}
+
+.document {
+  border: 2px solid rgba(40,25,15,0.55);
+  background: rgba(225,207,172,0.4);
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.document h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  border-bottom: 1px dashed rgba(0,0,0,0.2);
+  padding-bottom: 2px;
+}
+
+.dpp-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dpp-step {
+  font-size: 0.85rem;
+  padding: 6px;
+  background: rgba(0,0,0,0.04);
+  border-left: 3px solid var(--line);
+}
+.dpp-step b { color: var(--red); }
+
+.clue {
+  width: 100%;
+  min-height: 50px;
+  margin: 6px 0;
+  padding: 10px;
+  border: 2px solid #312922;
+  background: rgba(243,227,192,0.85);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 2px 2px 0px #312922;
+}
+.clue:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--blue);
+  border-color: var(--blue);
+}
+.clue.selected {
+  background: #c3d4d0;
+  border: 2px solid var(--blue);
+  box-shadow: 2px 2px 0px var(--blue);
+}
+.clue.solved {
+  opacity: 0.3;
+  text-decoration: line-through;
+  cursor: default;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.machine {
+  min-height: 580px;
+  background: linear-gradient(135deg, #192022, #0d1213);
+  color: #a3c2b7;
+  padding: 16px;
+}
+
+.screen-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 2px dashed #3a4d4f;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.screen-head h2 {
+  margin: 0;
+  color: #e0f2ec;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.lens-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.lens {
+  min-height: 38px;
+  border: 2px solid #4a5e5c;
+  background: #141c1d;
+  color: #8faea4;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.lens.active {
+  color: #fff;
+  border-color: #dfc67d;
+  background: #423312;
+  box-shadow: inset 0 0 6px #000;
+}
+
+.factory {
+  position: relative;
+  height: 300px;
+  border: 4px solid #06090a;
+  background: linear-gradient(180deg, #111a1f 0%, #20291c 45%, #0d1b21 100%);
+  filter: contrast(1.1);
+}
+.factory::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle x at 50% 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6)), repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.building { position: absolute; background: #413d35; border: 2px solid #141311; }
+.building.main { width: 44%; height: 38%; left: 12%; top: 36%; }
+.building.sorting { width: 34%; height: 28%; right: 8%; top: 46%; }
+.river {
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 30%;
+  background: linear-gradient(180deg, #10232e, #0c151b);
+  border-top: 2px solid #162f3e;
+}
+.sorting-chute {
+  position: absolute;
+  width: 12%; height: 16%;
+  right: 20%; bottom: 22%;
+  background: #2b2b29;
+  border: 2px solid #050505;
+}
+
+.hotspot {
+  position: absolute;
+  border: 2px dashed transparent;
+  background: transparent;
+  cursor: crosshair;
+  z-index: 10;
+}
+
+.factory[data-lens="thermal"] [data-scan="carbon"] {
+  border-color: #ff4a3d;
+  background: rgba(255, 40, 20, 0.25);
+  box-shadow: 0 0 25px rgba(255, 40, 20, 0.6);
+}
+.factory[data-lens="chemical"] [data-scan="composition"] {
+  border-color: #3dff85;
+  background: rgba(30, 255, 90, 0.25);
+  box-shadow: 0 0 25px rgba(30, 255, 90, 0.6);
+}
+.factory[data-lens="ledger"] [data-scan="manifest"] {
+  border-color: #3da2ff;
+  background: rgba(20, 120, 255, 0.25);
+  box-shadow: 0 0 25px rgba(20, 120, 255, 0.6);
+}
+
+.scan-log {
+  min-height: 102px;
+  margin-top: 12px;
+  padding: 10px;
+  background: #06090a;
+  border: 2px solid #314243;
+  color: #92b5a7;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.stamp-tray {
+  min-height: 580px;
+  background: linear-gradient(#3d2e23, #17100b);
+  padding: 16px;
+  color: var(--cream);
+  border: 4px solid #1a120d;
+}
+
+.stamp-tray h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.action {
+  width: 100%;
+  min-height: 50px;
+  margin: 8px 0;
+  border: 3px solid #0f0a08;
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #000;
+}
+.action:active { transform: translateY(2px); box-shadow: 0 2px 0 #000; }
+.action:disabled { opacity: 0.25; cursor: not-allowed; transform: none !important; box-shadow: 0 4px 0 #000 !important; }
+
+.link { background: var(--blue); }
+.approve { background: var(--green); }
+.deny { background: var(--red); }
+.next { background: var(--yellow); color: #000; }
+
+.ledger {
+  margin-top: 12px;
+  min-height: 130px;
+  color: var(--ink);
+  background: #bcab8f;
+  border: 2px dashed #443728;
+  padding: 10px;
+  line-height: 1.4;
+  font-size: 0.85rem;
+}
+
+.stamp {
+  display: block;
+  margin: 10px auto 0;
+  padding: 6px 12px;
+  border: 4px double currentColor;
+  transform: rotate(-4deg);
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+}
+.stamp.clean { color: #0c331e; }
+.stamp.fraud { color: #4c110b; }
+
+.end-card {
+  grid-column: 1 / -1;
+  min-height: 540px;
+  display: grid;
+  place-items: center;
+  background: #bfae93;
+  border: 4px double #221a14;
+  padding: 30px;
+  box-shadow: 0 15px 35px var(--shadow);
+}
+.end-card div { max-width: 580px; text-align: center; }
+.end-card h2 { font-size: 2.5rem; text-transform: uppercase; margin: 0 0 14px; border-bottom: 3px dashed #221a14; padding-bottom: 8px; }
+
+@media (max-width: 1024px) {
+  .desk { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="shell">
+
+  <section id="screen-menu" class="game-screen active">
+    <div class="intro-container">
+      <header class="intro-header">
+        <h1>Greenwash Inc.</h1>
+        <p>Módulos de Rastreabilidade & Economia Circular</p>
+      </header>
+      
+      <div class="manifesto-box">
+        &gt; <b>DIRETRIZ DO MINISTÉRIO:</b> Nem tudo o que parece sustentável realmente é. Neste desafio, você será um investigador da moda responsável por acompanhar o ciclo de vida das roupas, verificar informações sobre reciclagem e descobrir se as empresas estão cumprindo suas promessas ambientais. Use pistas, converse com personagens e tome decisões para ajudar a criar uma moda mais consciente.
+
+      <div style="border-top: 2px dashed var(--line); padding-top: 20px; margin-top: 24px;">
+        <h3 class="instructions-title" style="font-size: 0.9rem; color: var(--paper-deep); margin-bottom: 16px;">
+          [ SELECIONE O MÓDULO DE INVESTIGAÇÃO ]
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          
+          <a href="GREENWASHING DETECTIVE 2.html" style="text-decoration: none; display: block;">
+            <button type="button" class="action link" style="margin: 0; width: 100%; min-height: 58px; font-size: 0.95rem; padding: 6px 12px;">
+              MÓDULO I<br>
+              <span style="display: block; font-size: 0.7rem; font-weight: normal; color: #ac9c80; text-transform: none; margin-top: 2px;">
+                Economia Circular
+              </span>
+            </button>
+          </a>
+          <a href="GREENWASHING DETECTIVE 1.html" style="text-decoration: none; display: block;">
+            <button type="button" class="action link" style="margin: 0; width: 100%; min-height: 58px; font-size: 0.95rem; padding: 6px 12px;">
+              MÓDULO II<br>
+              <span style="display: block; font-size: 0.7rem; font-weight: normal; color: #ac9c80; text-transform: none; margin-top: 2px;">
+                Lab Rastreabilidade
+              </span>
+            </button>
+          </a>
+
+   
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</body>
+</html>
