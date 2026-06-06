@@ -6,7 +6,8 @@
 
 <title>Fashion Trace</title>
 
-<link rel="stylesheet"
+<link
+rel="stylesheet"
 href="css/style.css">
 
 </head>
@@ -16,49 +17,17 @@ href="css/style.css">
 <h1>Fashion Trace</h1>
 
 <button onclick="resetProgress()">
-Resetar Progresso
+Reset Progress
 </button>
 
 <div id="npcList"></div>
 
 <script src="js/game.js"></script>
+<script src="js/npc-loader.js"></script>
 
 <script>
 
-fetch("data/npcs.json")
-.then(r => r.json())
-.then(npcs => {
-
-    const container =
-    document.getElementById("npcList");
-
-    for(const id in npcs){
-
-        const div =
-        document.createElement("div");
-
-        if(
-            id === "ana" ||
-            isUnlocked(id)
-        ){
-
-            div.innerHTML =
-            `<a href="npcs/${id}.html">
-                ${npcs[id].name}
-             </a>`;
-
-        }else{
-
-            div.innerHTML =
-            `🔒 ${npcs[id].name}`;
-
-        }
-
-        container.appendChild(div);
-
-    }
-
-});
+renderNPCMenu("npcList");
 
 </script>
 
