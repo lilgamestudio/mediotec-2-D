@@ -1,0 +1,41 @@
+body{
+
+    font-family:Arial;
+
+    max-width:1000px;
+
+    margin:auto;
+
+    padding:30px;
+
+    background:#111;
+
+    color:white;
+
+}
+
+a{
+
+    color:#43d8ff;
+
+    text-decoration:none;
+
+}
+
+button{
+
+    padding:12px 20px;
+
+    margin:10px;
+
+    cursor:pointer;
+
+}
+
+#npcList{
+
+    display:grid;
+
+    gap:10px;
+
+}
