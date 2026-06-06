@@ -1,5 +1,5 @@
 {
-  "1_ana_cooperativa": {
+  "ana": {
     "name": "Ana Silva",
     "theme": "Economia Circular",
     "unlocks": ["carlos","helena"]
