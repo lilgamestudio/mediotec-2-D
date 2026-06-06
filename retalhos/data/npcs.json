@@ -1,0 +1,25 @@
+{
+  "ana": {
+    "name": "Ana Silva",
+    "theme": "Economia Circular",
+    "unlocks": ["carlos","helena"]
+  },
+
+  "carlos": {
+    "name": "Carlos Mendes",
+    "theme": "Logística Reversa",
+    "unlocks": ["felipe"]
+  },
+
+  "helena": {
+    "name": "Helena Rocha",
+    "theme": "Gestão de Resíduos",
+    "unlocks": []
+  },
+
+  "felipe": {
+    "name": "Felipe Costa",
+    "theme": "Transporte Sustentável",
+    "unlocks": []
+  }
+}
