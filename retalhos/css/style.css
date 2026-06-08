@@ -1,111 +1,207 @@
-/* Base do Jogo */
+/* Base Temática: Cyberpunk Sustentável */
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    max-width: 800px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
     margin: auto;
     padding: 30px;
-    background: #0d0e12;
-    color: #e2e8f0;
+    background: #0b0c10;
+    color: #c5c6c7;
+    transition: opacity 0.5s ease;
 }
 
-h1, h2 {
-    color: #22c55e; /* Verde Sustentável */
-    text-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+h1, h2, h3 {
+    color: #45f3ff;
+    text-shadow: 0 0 10px rgba(69, 243, 255, 0.3);
 }
 
-/* Menu de Contatos e Navegação */
-a {
-    color: #38bdf8;
-    text-decoration: none;
+/* Painel Superior de Status (Moedas e Progresso) */
+.hud-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1f2833;
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border: 1px solid #45f3ff;
+}
+
+.hud-item {
+    font-size: 18px;
     font-weight: bold;
-    transition: color 0.2s;
+    color: #66fcf1;
 }
 
-a:hover {
-    color: #0ea5e9;
+/* Barra de Progresso */
+.progress-bar-bg {
+    background: #0b0c10;
+    width: 150px;
+    height: 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
+    overflow: hidden;
+    border: 1px solid #333;
 }
 
-/* Botões Juicy 🍊 */
-button {
-    background: #1e293b;
-    color: white;
-    border: 2px solid #334155;
-    padding: 12px 24px;
-    margin: 8px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.progress-bar-fill {
+    background: linear-gradient(90deg, #45f3ff, #1f2833);
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s ease-in-out;
 }
 
-button:hover {
-    background: #334155;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-button:active {
-    transform: translateY(0);
-}
-
-/* Grid de NPCs */
+/* Grid e Cards de NPCs */
 #npcList {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
     margin-top: 20px;
 }
 
-/* Cards dos NPCs */
 .npc-card {
-    padding: 20px;
+    padding: 25px;
     border-radius: 12px;
     text-align: center;
     font-weight: bold;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Estado: Desbloqueado */
 .npc-card.unlocked {
-    background: #1e293b;
-    border: 2px solid #22c55e;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #1f2833;
+    border: 2px solid #45f3ff;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .npc-card.unlocked:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(69, 243, 255, 0.2);
 }
 
-/* Estado: Bloqueado */
+.npc-card.completed {
+    border-color: #22c55e;
+}
+
+.npc-card.completed::after {
+    content: "✓ COMPLETO";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 10px;
+    background: #22c55e;
+    color: black;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
 .npc-card.locked {
     background: #11141a;
-    border: 2px dashed #475569;
-    color: #64748b;
-    opacity: 0.6;
+    border: 2px dashed #444;
+    color: #555;
     cursor: not-allowed;
 }
 
-/* Painel de Feedback Centralizado (Substituindo o Alert) 📣 */
-#game-feedback {
+/* Caixa de Diálogo Typewriter */
+.dialogue-box {
+    background: #1f2833;
+    border-left: 5px solid #45f3ff;
+    padding: 20px;
+    margin: 20px 0;
+    font-size: 18px;
+    min-height: 50px;
+    line-height: 1.6;
+    border-radius: 0 10px 10px 0;
+}
+
+/* Botões do Quiz Elevados (Juicy 🍊) */
+.quiz-btn {
+    background: #1f2833;
+    color: white;
+    border: 2px solid #45f3ff;
+    padding: 15px 25px;
+    margin: 10px 0;
+    width: 100%;
+    text-align: left;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.quiz-btn:hover:not(:disabled) {
+    background: #45f3ff;
+    color: black;
+    transform: translateX(5px);
+    box-shadow: 0 0 15px rgba(69, 243, 255, 0.4);
+}
+
+/* Estados Visuais Instantâneos */
+.quiz-btn.correct-choice {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: black !important;
+    animation: popSuccess 0.3s ease;
+}
+
+.quiz-btn.wrong-choice {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: white !important;
+    animation: shakeError 0.4s ease;
+}
+
+/* Barra Lateral de Contactos */
+#contacts {
+    background: #141923;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.contact-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    background: #222;
+}
+.contact-pill.unlocked { background: rgba(69, 243, 255, 0.1); color: #45f3ff; border: 1px solid #45f3ff; }
+.contact-pill.completed { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid #22c55e; }
+
+/* Notificação Toast */
+#toast-notification {
     position: fixed;
-    top: 20px;
+    top: -100px;
     left: 50%;
-    transform: translateX(-50%) translateY(-50px);
+    transform: translateX(-50%);
     padding: 16px 32px;
     border-radius: 8px;
-    font-weight: bold;
     color: white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 1000;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 9999;
+    transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+#toast-notification.show { top: 30px; }
+#toast-notification.success { background: #22c55e; color: black; }
+#toast-notification.error { background: #ef4444; }
 
-#game-feedback.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
+/* Animações Keyframes */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
 }
-
-#game-feedback.success { background: #22c55e; }
-#game-feedback.error { background: #ef4444; }
+@keyframes popSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
