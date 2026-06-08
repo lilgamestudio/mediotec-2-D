@@ -1,35 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
-
-<meta charset="UTF-8">
-
-<title>Fashion Trace</title>
-
-<link
-rel="stylesheet"
-href="css/style.css">
-
+    <meta charset="UTF-8">
+    <title>Fashion Trace - Hub</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
-<h1>Fashion Trace</h1>
+    <h1>Fashion Trace</h1>
 
-<button onclick="resetProgress()">
-Reset Progress
-</button>
+    <div class="hud-container">
+        <div class="hud-item">🪙 Eco-Tokens: <span id="token-count">0</span></div>
+        <div class="hud-item">
+            Progresso: <span id="progress-text">0%</span>
+            <div class="progress-bar-bg">
+                <div id="progress-fill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+    </div>
 
-<div id="npcList"></div>
+    <div id="npcList"></div>
 
-<script src="js/game.js"></script>
-<script src="js/npc-loader.js"></script>
+    <hr style="border: 0; border-top: 1px solid #1f2833; margin: 40px 0 20px 0;">
+    <button onclick="resetProgress()" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;">
+        Reiniciar Progresso
+    </button>
 
-<script>
-
-renderNPCMenu("npcList");
-
-</script>
-
+    <script src="js/game.js"></script>
+    <script src="js/npc-loader.js"></script>
+    <script>
+        renderNPCMenu("npcList");
+    </script>
 </body>
 </html>
