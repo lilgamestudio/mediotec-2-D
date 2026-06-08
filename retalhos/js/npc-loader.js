@@ -11,19 +11,24 @@ async function renderNPCMenu(containerId){
     Object.entries(npcs).forEach(([id, npc]) => {
         const card = document.createElement("div");
         const unlocked = id === "ana" || isUnlocked(id);
+        const completed = isCompleted(id);
 
-        // Adiciona as classes para a animação do CSS funcionar 🌟
         if(unlocked){
-            card.className = "npc-card unlocked";
+            card.className = completed ? "npc-card unlocked completed" : "npc-card unlocked";
             card.innerHTML = `
-                <a href="npcs/${id}.html">
-                    🟢 ${npc.name}
-                </a>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">${npc.theme}</div>
+                <h3 style="margin: 0 0 10px 0;">🟢 ${npc.name}</h3>
+                <div style="font-size: 14px; color: #45f3ff;">${npc.theme}</div>
             `;
+            card.onclick = () => {
+                playSound('click');
+                smoothNavigate(`npcs/${id}.html`);
+            };
         } else {
             card.className = "npc-card locked";
-            card.innerHTML = `🔒 ${npc.name} (Bloqueado)`;
+            card.innerHTML = `
+                <h3 style="margin: 0 0 10px 0; color: #444;">🔒 Bloqueado</h3>
+                <div style="font-size: 12px; color: #333;">Investigue mais pistas</div>
+            `;
         }
 
         container.appendChild(card);
