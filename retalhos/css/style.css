@@ -1,41 +1,111 @@
-body{
-
-    font-family:Arial;
-
-    max-width:1000px;
-
-    margin:auto;
-
-    padding:30px;
-
-    background:#111;
-
-    color:white;
-
+/* Base do Jogo */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    max-width: 800px;
+    margin: auto;
+    padding: 30px;
+    background: #0d0e12;
+    color: #e2e8f0;
 }
 
-a{
-
-    color:#43d8ff;
-
-    text-decoration:none;
-
+h1, h2 {
+    color: #22c55e; /* Verde Sustentável */
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
 }
 
-button{
-
-    padding:12px 20px;
-
-    margin:10px;
-
-    cursor:pointer;
-
+/* Menu de Contatos e Navegação */
+a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
 }
 
-#npcList{
-
-    display:grid;
-
-    gap:10px;
-
+a:hover {
+    color: #0ea5e9;
 }
+
+/* Botões Juicy 🍊 */
+button {
+    background: #1e293b;
+    color: white;
+    border: 2px solid #334155;
+    padding: 12px 24px;
+    margin: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background: #334155;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Grid de NPCs */
+#npcList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+/* Cards dos NPCs */
+.npc-card {
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado: Desbloqueado */
+.npc-card.unlocked {
+    background: #1e293b;
+    border: 2px solid #22c55e;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.npc-card.unlocked:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+}
+
+/* Estado: Bloqueado */
+.npc-card.locked {
+    background: #11141a;
+    border: 2px dashed #475569;
+    color: #64748b;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Painel de Feedback Centralizado (Substituindo o Alert) 📣 */
+#game-feedback {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50px);
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+#game-feedback.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+#game-feedback.success { background: #22c55e; }
+#game-feedback.error { background: #ef4444; }
