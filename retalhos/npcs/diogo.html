@@ -8,26 +8,28 @@
 <body>
     <div id="contacts"></div>
 
-    <h1>⚠️ CONFLITO BOSS: Diogo Moreno</h1>
+    <h1 style="color: #ff4343;">⚠️ CONFLITO BOSS: Diogo Moreno</h1>
     <p><strong>Tema:</strong> Auditoria de Greenwashing</p>
-    <p>Chegaste ao fim da linha. Se acertares este enigma, terás acesso ao terminal Hacker para expor a marca!</p>
+    <p>Chegaste à barreira final. Decifra o enigma para desbloquear o acesso direto ao terminal do Minijogo.</p>
 
     <h2>Desafio de Pista Final</h2>
-    <p>Como um investigador identifica uma campanha real de sustentabilidade vs. Greenwashing?</p>
+    <p>Como um auditor independente identifica fraudes de marcas que praticam Greenwashing?</p>
 
     <button onclick="answerQuiz(true, 'diogo', [], '../minigames/auditoria.html')">
-        A) Verificando dados abertos, relatórios auditados e certificações externas (ex: GOTS).
+        A) Verificando relatórios auditados e certificações rastreáveis de entidades externas (como GOTS).
     </button>
-    
     <button onclick="answerQuiz(false, 'diogo')">
-        B) Confiando em etiquetas verdes que dizem 'Eco-Friendly' sem apresentar relatórios.
+        B) Baseando a análise apenas em campanhas de marketing e etiquetas que usam o termo "Consciente".
+    </button>
+
+    <hr style="margin-top: 30px; opacity: 0.3;">
+    <button onclick="window.location.href='../index.html'" style="background: #ff4343; color: #fff;">
+        ↩️ Recuar para o Painel de Investigação
     </button>
 
     <script src="../js/game.js"></script>
     <script src="../js/contacts.js"></script>
     <script src="../js/quiz.js"></script>
-    <script>
-        renderContacts("contacts");
-    </script>
+    <script>renderContacts("contacts");</script>
 </body>
 </html>
