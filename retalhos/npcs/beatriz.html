@@ -2,22 +2,24 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Investigação: Beatriz Santos</title>
+    <title>Beatriz Santos</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <div id=\"contacts\"></div>
+    <div id="contacts"></div>
+
     <h1>Beatriz Santos</h1>
-    <h3>Cientista de Materiais Eco-Inovadores</h3>
-    <div id="dialogue" class="dialogue-box">...</div>
+    <p><strong>Tema:</strong> Materiais Eco-Inovadores</p>
+    <p>Criamos o futuro da moda em laboratório. Mas nem todas as marcas usam os tecidos de forma honesta.</p>
 
     <h2>Desafio de Pista</h2>
-    <p>Qual das seguintes opções representa uma alternativa têxtil de baixo impacto ambiental?</p>
+    <p>Qual das seguintes opções representa uma alternativa têxtil de baixo impacto?</p>
 
-    <button class="quiz-btn" onclick="handleQuizAnswer(this, true, 'beatriz', ['diogo'])">
-        A) Fibras feitas a partir de micélio de cogumelos e resíduos de fruta (como casca de maçã).
+    <button onclick="answerQuiz(true, 'beatriz', ['diogo'])">
+        A) Fibras feitas a partir de micélio de cogumelos e resíduos de fruta.
     </button>
-    <button class="quiz-btn" onclick="handleQuizAnswer(this, false, 'beatriz')">
+    
+    <button onclick="answerQuiz(false, 'beatriz')">
         B) Poliéster virgem misturado com nylon convencional para maior durabilidade.
     </button>
 
@@ -26,7 +28,6 @@
     <script src="../js/quiz.js"></script>
     <script>
         renderContacts("contacts");
-        typeWriter("dialogue", "Criamos o futuro da moda em tubos de ensaio. Couro de cogumelo, seda de laboratório... Mas repara: nem todas as marcas que compram os meus tecidos os usam de forma honesta.");
     </script>
 </body>
 </html>
