@@ -2,39 +2,29 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Investigação: Ana Silva</title>
+    <title>Ana Silva</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-
     <div id="contacts"></div>
 
     <h1>Ana Silva</h1>
-    <h3>Especialista em Economia Circular</h3>
+    <p>Trabalho numa cooperativa de reciclagem têxtil.</p>
 
-    <div id="dialogue" class="dialogue-box">...</div>
+    <h2>Quiz</h2>
+    <p>Qual é um objetivo da economia circular?</p>
 
-    <h2>Desafio de Pista</h2>
-    <p>Demonstra o teu conhecimento para desbloquear novos contactos na cadeia:</p>
+    <button onclick="answerQuiz(true, 'ana', ['carlos','helena'])">Reutilizar materiais</button>
+    <button onclick="answerQuiz(false, 'ana')">Produzir mais resíduos</button>
 
-    <button class="quiz-btn" onclick="handleQuizAnswer(this, true, 'ana', ['carlos','helena'])">
-        A) Reutilizar materiais e eliminar desperdício desde a conceção.
-    </button>
-
-    <button class="quiz-btn" onclick="handleQuizAnswer(this, false, 'ana')">
-        B) Acelerar a produção industrial focando apenas em aterros sanitários.
+    <hr style="margin-top: 40px; opacity: 0.2;">
+    <button onclick="window.location.href='../index.html'" style="background: #333; color: #fff;">
+        ↩️ Voltar ao Painel Principal
     </button>
 
     <script src="../js/game.js"></script>
     <script src="../js/contacts.js"></script>
     <script src="../js/quiz.js"></script>
-
-    <script>
-        renderContacts("contacts");
-        
-        // Ativa o efeito de digitação na fala da Ana
-        const falaDaAna = "Olá, investigador. Aqui na cooperativa têxtil, descobrimos que toneladas de retalhos são descartadas sem necessidade. O segredo está no design circular...";
-        typeWriter("dialogue", falaDaAna);
-    </script>
+    <script>renderContacts("contacts");</script>
 </body>
 </html>
