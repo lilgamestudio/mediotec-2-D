@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Investigação: Carlos Mendes</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id=\"contacts\"></div>
+    <h1>Carlos Mendes</h1>
+    <h3>Especialista em Logística Reversa</h3>
+    <div id="dialogue" class="dialogue-box">...</div>
+
+    <h2>Desafio de Pista</h2>
+    <p>O que define um sistema de recolha de roupa pós-consumo verdadeiramente eficaz?</p>
+
+    <button class="quiz-btn" onclick="handleQuizAnswer(this, true, 'carlos', ['felipe'])">
+        A) Criar pontos de recolha acessíveis e garantir a triagem para reutilização ou reciclagem.
+    </button>
+    <button class="quiz-btn" onclick="handleQuizAnswer(this, false, 'carlos')">
+        B) Incinerar as roupas antigas para gerar energia rápida para novas coleções.
+    </button>
+
+    <script src="../js/game.js"></script>
+    <script src="../js/contacts.js"></script>
+    <script src="../js/quiz.js"></script>
+    <script>
+        renderContacts("contacts");
+        typeWriter("dialogue", "Encontraste-me. O meu foco é trazer o produto de volta ao ciclo produtivo. Mas o transporte dessas peças recolhidas ainda é um grande problema escondido...");
+    </script>
+</body>
+</html>
