@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Investigação: Felipe Costa</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id=\"contacts\"></div>
+    <h1>Felipe Costa</h1>
+    <h3>Gerente de Transporte Sustentável</h3>
+    <div id="dialogue" class="dialogue-box">...</div>
+
+    <h2>Desafio de Pista</h2>
+    <p>Como mitigar a pegada de carbono na distribuição internacional de moda?</p>
+
+    <button class="quiz-btn" onclick="handleQuizAnswer(this, true, 'felipe', ['diogo'])">
+        A) Otimizar rotas usando frotas elétricas/híbridas e priorizar o transporte marítimo ou ferroviário.
+    </button>
+    <button class="quiz-btn" onclick="handleQuizAnswer(this, false, 'felipe')">
+        B) Utilizar exclusivamente transporte aéreo expresso para evitar armazenamento.
+    </button>
+
+    <script src="../js/game.js"></script>
+    <script src="../js/contacts.js"></script>
+    <script src="../js/quiz.js"></script>
+    <script>
+        renderContacts("contacts");
+        typeWriter("dialogue", "Transportar moda sustentável em camiões a gasóleo anula o propósito do ecodesign. Temos de eletrificar as frotas e rever as nossas rotas urgentes.");
+    </script>
+</body>
+</html>
