@@ -1,39 +1,26 @@
-// Avaliação Reativa do Quiz (Suporta Redirecionamento para Minijogos/Bosses)
-function handleQuizAnswer(buttonElement, isCorrect, currentNPC, unlocks = [], redirectUrl = null) {
-    // Desativa todos os botões temporariamente para evitar cliques duplos
-    const buttons = document.querySelectorAll('.quiz-btn');
-    buttons.forEach(btn => btn.disabled = true);
+// Motor de Quiz Atualizado - Fashion Trace
+// Adicionado suporte a redirecionamento automático e páginas de minijogos
+function answerQuiz(correct, currentNPC, unlocks = [], redirectUrl = null) {
+    if (correct) {
+        // Salva o progresso no localStorage usando as funções do seu game.js
+        unlockNPCs(unlocks);
+        completeNPC(currentNPC);
 
-    if (isCorrect) {
-        playSound('success');
-        buttonElement.classList.add('correct-choice');
-        
-        // Atribui pontos/moedas se for a primeira vez que completa
-        if (!isCompleted(currentNPC)) {
-            addEcoTokens(100); // Bosses podem dar mais pontos!
-            unlockNPCs(unlocks);
-            completeNPC(currentNPC);
-            showToast("🏆 BOSS SUPERADO! +100 Eco-Tokens obtidos.", "success");
-        } else {
-            showToast("✓ Boss rejogado com sucesso!", "success");
-        }
+        alert("🏆 Resposta correta! Avanço registado.");
 
-        // Aguarda a animação e faz a transição suave
+        // Se foi passada uma URL de minijogo, vai para lá. Se não, volta para a página principal (index)
+        // Como os NPCs estão na pasta /npcs, para voltar ao index usamos "../index.html"
         setTimeout(() => {
-            // Se houver uma página especial (minigame), vai para lá. Se não, volta ao index.
-            const destination = redirectUrl ? redirectUrl : "../index.html";
-            smoothNavigate(destination);
-        }, 2000);
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            } else {
+                window.location.href = "../index.html";
+            }
+        }, 500); // Pequena pausa para o jogador ler o alerta
 
-    } else {
-        playSound('error');
-        buttonElement.classList.add('wrong-choice');
-        showToast("❌ Resposta incorreta. O Boss bloqueou o teu avanço!", "error");
-
-        // Devolve o controle após a animação de erro acabar
-        setTimeout(() => {
-            buttonElement.classList.remove('wrong-choice');
-            buttons.forEach(btn => btn.disabled = false);
-        }, 1000);
+        return true;
     }
+
+    alert("❌ Resposta incorreta. Tenta novamente!");
+    return false;
 }
