@@ -1,23 +1,32 @@
-// Motor de Quiz Atualizado - Fashion Trace
-// Adicionado suporte a redirecionamento automático e páginas de minijogos
+// Motor de Quiz - Fashion Trace (Suporte a NPCs normais e Bosses com Minijogos)
 function answerQuiz(correct, currentNPC, unlocks = [], redirectUrl = null) {
+    // 1. Toca o som correspondente se a função playSound existir no seu game.js
+    if (typeof playSound === "function") {
+        playSound(correct ? 'success' : 'error');
+    }
+
     if (correct) {
-        // Salva o progresso no localStorage usando as funções do seu game.js
-        unlockNPCs(unlocks);
-        completeNPC(currentNPC);
+        // 2. Guarda o progresso nas funções globais do game.js
+        if (typeof unlockNPCs === "function") unlockNPCs(unlocks);
+        if (typeof completeNPC === "function") completeNPC(currentNPC);
+        
+        // Atribui pontos se a função existir
+        if (typeof addEcoTokens === "function") {
+            addEcoTokens(100); 
+        }
 
-        alert("🏆 Resposta correta! Avanço registado.");
+        alert("🏆 Resposta correta! Sistema atualizado.");
 
-        // Se foi passada uma URL de minijogo, vai para lá. Se não, volta para a página principal (index)
-        // Como os NPCs estão na pasta /npcs, para voltar ao index usamos "../index.html"
-        setTimeout(() => {
-            if (redirectUrl) {
-                window.location.href = redirectUrl;
-            } else {
-                window.location.href = "../index.html";
-            }
-        }, 500); // Pequena pausa para o jogador ler o alerta
+        // 3. Define o destino: Se houver URL de minijogo vai para lá, se não volta para o index.html
+        // Como os NPCs estão dentro da pasta '/npcs', para voltar à raiz usamos '../index.html'
+        const destination = redirectUrl ? redirectUrl : "../index.html";
 
+        // 4. Executa a transição suave se ela existir no seu game.js, caso contrário usa navegação direta
+        if (typeof smoothNavigate === "function") {
+            smoothNavigate(destination);
+        } else {
+            window.location.href = destination;
+        }
         return true;
     }
 
