@@ -1,25 +1,34 @@
-async function renderContacts(containerId){
+async function renderContacts(containerId) {
+    // Como estamos dentro da pasta /npcs, voltamos um nível para ler o JSON de dados
     const response = await fetch("../data/npcs.json");
     const npcs = await response.json();
     const container = document.getElementById(containerId);
+    
+    if (!container) return;
     container.innerHTML = "";
 
-    Object.entries(npcs).forEach(([id, npc]) => {
-        const pill = document.createElement("span");
-        const unlocked = id === "ana" || isUnlocked(id);
-        const completed = isCompleted(id);
+    // Criamos uma lista horizontal bonita para o topo
+    const navBar = document.createElement("div");
+    navBar.style.display = "flex";
+    navBar.style.gap = "15px";
+    navBar.style.marginBottom = "20px";
+    navBar.style.padding = "10px";
+    navBar.style.background = "#222";
+    navBar.style.borderRadius = "5px";
 
-        pill.className = "contact-pill";
-        if (completed) {
-            pill.className += " completed";
-            pill.innerText = `✓ ${npc.name}`;
-        } else if (unlocked) {
-            pill.className += " unlocked";
-            pill.innerText = `💬 ${npc.name}`;
+    Object.entries(npcs).forEach(([id, npc]) => {
+        const linkEl = document.createElement("span");
+        const unlocked = id === "ana" || isUnlocked(id);
+
+        if (unlocked) {
+            // CORREÇÃO CRÍTICA: O link aponta diretamente para o ficheiro na mesma pasta (ex: carlos.html)
+            linkEl.innerHTML = `<a href="${id}.html" style="color: #43d8ff; text-decoration: none; font-weight: bold;">✓ ${npc.name}</a>`;
         } else {
-            pill.innerText = `🔒 ${npc.name.split(' ')[0]}`;
+            linkEl.innerHTML = `<span style="color: #666;">🔒 ${npc.name}</span>`;
         }
 
-        container.appendChild(pill);
+        navBar.appendChild(linkEl);
     });
+
+    container.appendChild(navBar);
 }
