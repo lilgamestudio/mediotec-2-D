@@ -66,8 +66,8 @@ function updateHUD() {
     const tokensEl = document.getElementById("token-count");
     if(tokensEl) tokensEl.innerText = getEcoTokens();
 
-    // Calcula percentagem de conclusão baseada em 4 NPCs
-    const npcs = ['ana', 'carlos', 'helena', 'felipe'];
+    // Atualizado para incluir os 6 NPCs do jogo
+    const npcs = ['ana', 'carlos', 'helena', 'felipe', 'beatriz', 'diogo'];
     const completedCount = npcs.filter(id => isCompleted(id)).length;
     const percentage = Math.round((completedCount / npcs.length) * 100);
 
