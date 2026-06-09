@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Investigação: Helena Rocha</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id=\"contacts\"></div>
+    <h1>Helena Rocha</h1>
+    <h3>Gestão de Resíduos Industriais</h3>
+    <div id="dialogue" class="dialogue-box">...</div>
+
+    <h2>Desafio de Pista</h2>
+    <p>Qual a melhor abordagem para reduzir o desperdício de água no tingimento de tecidos?</p>
+
+    <button class="quiz-btn" onclick="handleQuizAnswer(this, true, 'helena', ['beatriz'])">
+        A) Implementar sistemas de circuito fechado que filtram e reutilizam 95% da água.
+    </button>
+    <button class="quiz-btn" onclick="handleQuizAnswer(this, false, 'helena')">
+        B) Diluir os químicos em água limpa antes de os descartar nos rios locais.
+    </button>
+
+    <script src="../js/game.js"></script>
+    <script src="../js/contacts.js"></script>
+    <script src="../js/quiz.js"></script>
+    <script>
+        renderContacts("contacts");
+        typeWriter("dialogue", "O desperdício nas fábricas é assustador. Se queres revolucionar o mercado, precisas de conhecer quem está a criar tecidos alternativos em laboratório.");
+    </script>
+</body>
+</html>
