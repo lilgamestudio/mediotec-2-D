@@ -39,9 +39,10 @@
             padding: 15px;
             border-radius: 8px;
             border: 2px solid #222;
+            position: relative;
         }
         canvas {
-            background: #1a221d; /* Fundo que lembra relva/piso escuro */
+            background: #1a221d; /* Será controlado pelo JS dinamicamente */
             border: 3px solid #333;
             border-radius: 4px;
             display: block;
@@ -51,6 +52,31 @@
             color: #888;
             font-size: 0.9rem;
             margin-top: 8px;
+        }
+        /* Indicador do Carrossel de Mundos */
+        .world-carousel-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .world-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #43d8ff;
+            min-width: 200px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .key-badge {
+            background: #333;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            font-family: monospace;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -69,8 +95,17 @@
 
     <div id="map-view" class="tab-content active">
         <div id="canvas-wrapper">
+            <div class="world-carousel-indicator">
+                <span class="key-badge">Q</span>
+                <div id="current-world-title" class="world-name">Setor Alfa</div>
+                <span class="key-badge">E</span>
+            </div>
+
             <canvas id="worldMap" width="800" height="450"></canvas>
-            <p class="controls-hint">Usa as setas do teclado (<b>▲ ▼ ◀ ▶</b>) ou as teclas <b>W, A, S, D</b> para mover o teu investigador.</p>
+            <p class="controls-hint">
+                Movimento: <b>▲ ▼ ◀ ▶</b> ou <b>W, A, S, D</b>. | 
+                Alternar entre Mundos: <b style="color: #43d8ff;">Q</b> e <b style="color: #43d8ff;">E</b> (Carrossel).
+            </p>
         </div>
     </div>
 
@@ -84,7 +119,7 @@
 
     <script>
         // Inicializa o menu clássico na aba secundária
-        renderNPCMenu("npcList");
+        if(typeof renderNPCMenu === 'function') renderNPCMenu("npcList");
 
         // Função nativa para gerir a troca de Abas
         function switchTab(tabId) {
@@ -94,7 +129,6 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
 
-            // Foca o canvas automaticamente ao entrar na aba do mapa para aceitar comandos de teclado imediatamente
             if (tabId === 'map-view' && typeof initWorldMap === 'function') {
                 initWorldMap();
             }
@@ -102,8 +136,111 @@
 
         // Inicia o mapa assim que a página carregar
         window.addEventListener('DOMContentLoaded', () => {
-            initWorldMap();
+            if (typeof initWorldMap === 'function') {
+                initWorldMap();
+            } else {
+                // Mock local apenas para testes caso o arquivo js externo não esteja rodando ainda
+                setupLocalMockGame();
+            }
         });
+
+        // ==========================================
+        // EXEMPLO DE IMPLEMENTAÇÃO DA LÓGICA (Para aplicar no teu world-map.js)
+        // ==========================================
+        function setupLocalMockGame() {
+            const canvas = document.getElementById('worldMap');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // 1. Definição dos 3 mundos e os seus respectivos NPCs
+            const worlds = [
+                {
+                    name: "Distrito de Alta Costura",
+                    bgColor: "#1a221d", // Verde Escuro
+                    npcs: [
+                        { name: "Estilista Pierre", x: 200, y: 200, color: "#ff43d8" },
+                        { name: "Modelo Elena", x: 600, y: 150, color: "#e3ff43" }
+                    ]
+                },
+                {
+                    name: "Fábrica Têxtil Abandonada",
+                    bgColor: "#221a1a", // Avermelhado/Ferrugem
+                    npcs: [
+                        { name: "Supervisor Cláudio", x: 400, y: 300, color: "#43fff6" }
+                    ]
+                },
+                {
+                    name: "Mercado Negro de Tecidos",
+                    bgColor: "#1a1b22", // Azul Noite
+                    npcs: [
+                        { name: "Informante Desconhecido", x: 150, y: 350, color: "#a843ff" },
+                        { name: "Contrabandista", x: 500, y: 100, color: "#ff8443" }
+                    ]
+                }
+            ];
+
+            let currentWorldIndex = 0;
+            
+            // Posição do jogador
+            const player = { x: 400, y: 225, size: 15, speed: 5 };
+
+            function updateWorldUI() {
+                document.getElementById('current-world-title').innerText = worlds[currentWorldIndex].name;
+                canvas.style.backgroundColor = worlds[currentWorldIndex].bgColor;
+            }
+
+            // Ouvinte de teclado para o Carrossel (Q e E) e movimento (WASD/Setas)
+            window.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+
+                // Mecânica do Carrossel
+                if (key === 'q') {
+                    // Anda para trás no array. Se for menor que 0, vai para o último (2)
+                    currentWorldIndex = (currentWorldIndex - 1 + worlds.length) % worlds.length;
+                    updateWorldUI();
+                } 
+                else if (key === 'e') {
+                    // Anda para a frente no array. Se passar do limite, volta para o primeiro (0)
+                    currentWorldIndex = (currentWorldIndex + 1) % worlds.length;
+                    updateWorldUI();
+                }
+
+                // Movimento básico apenas para demonstração visual
+                if (key === 'a' || e.key === 'ArrowLeft') player.x -= player.speed;
+                if (key === 'd' || e.key === 'ArrowRight') player.x += player.speed;
+                if (key === 'w' || e.key === 'ArrowUp') player.y -= player.speed;
+                if (key === 's' || e.key === 'ArrowDown') player.y += player.speed;
+                
+                draw();
+            });
+
+            // Função de renderização do Canvas
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const activeWorld = worlds[currentWorldIndex];
+
+                // Desenhar NPCs do mundo atual
+                activeWorld.npcs.forEach(npc => {
+                    ctx.fillStyle = npc.color;
+                    ctx.beginPath();
+                    ctx.arc(npc.x, npc.y, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Nome do NPC acima dele
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "12px sans-serif";
+                    ctx.fillText(npc.name, npc.x - 40, npc.y - 20);
+                });
+
+                // Desenhar o Investigador (Jogador)
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(player.x - player.size/2, player.y - player.size/2, player.size, player.size);
+            }
+
+            // Inicialização interna do Mock
+            updateWorldUI();
+            draw();
+        }
     </script>
 </body>
 </html>
